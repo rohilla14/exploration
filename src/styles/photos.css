@@ -1,0 +1,30 @@
+/* Shared photo slots — empty state shows where to drop files */
+.photo-slot {
+  position: relative;
+  background:
+    linear-gradient(145deg, rgba(232, 180, 184, 0.35), rgba(184, 216, 236, 0.3)),
+    linear-gradient(180deg, var(--cream-warm), var(--sky-soft));
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.photo-slot--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-slot__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(61, 53, 48, 0.55);
+  background: rgba(255, 255, 255, 0.65);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(4px);
+}
+
+.photo-slot:not(.photo-slot--empty) .photo-slot__label {
+  display: none;
+}

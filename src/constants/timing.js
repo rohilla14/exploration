@@ -1,0 +1,17 @@
+export const TIMING = Object.freeze({
+  screenTransitionMs: 450,
+  loadingCharDelayMs: 55,
+  loadingPauseAfterMs: 400,
+  greetingGlitchMs: 1500,
+  greetingAutoAdvanceMs: 2500,
+  envelopeOpenMs: 1400,
+  scratchRevealRatio: 0.55,
+  anticipationDurationMs: 6000,
+  anticipationCaptionRotateMs: 1500,
+  preAskHoldMs: 2500,
+  bigAskChaseGiveUpMs: 3000,
+  celebrationBurstDelayMs: 300,
+  chaseCatchableAfterMs: 5000,
+  easterEggClickWindowMs: 3000,
+  easterEggClicksRequired: 5,
+});

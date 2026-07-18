@@ -1,0 +1,314 @@
+import { CONFIG } from '../config.js';
+import { SCREENS } from '../constants/screens.js';
+import { EVENTS } from '../constants/eventTypes.js';
+import { createLifecycle } from '../utils/lifecycle.js';
+
+const GLITCH_CHARS =
+  '!@#$%^&*?~<>[]{}|/\\ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const GLITCH_DURATION = 1500;
+
+function clamp(v, min = 0, max = 1) {
+  return Math.min(max, Math.max(min, v));
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+/** @param {{ manager: import('../core/ScreenManager.js').ScreenManager, analytics: import('../analytics/Analytics.js').Analytics }} services */
+export function createScrollStoryScreen({ manager, analytics }) {
+  const lc = createLifecycle();
+
+  const element = document.createElement('section');
+  element.className = 'screen screen--cinematic';
+
+  const scrollRoot = document.createElement('div');
+  scrollRoot.className = 'cinematic-scroll';
+
+  const track = document.createElement('div');
+  track.className = 'story-track';
+
+  // —— Greeting (top of scroll — scroll back anytime to see this) ——
+  const greetingSection = document.createElement('div');
+  greetingSection.className = 'story-greeting';
+
+  const greetingInner = document.createElement('div');
+  greetingInner.className = 'story-greeting__inner';
+
+  const greetingPhotos = document.createElement('div');
+  greetingPhotos.className = 'story-greeting__photos';
+
+  const greeting = document.createElement('h1');
+  greeting.className = 'greeting-text greeting-text--glitch';
+
+  const softLine = document.createElement('p');
+  softLine.className = 'story-greeting__soft typewriter';
+  softLine.innerHTML =
+    '<span class="typewriter__text"></span><span class="typewriter__cursor">|</span>';
+
+  const scrollHint = document.createElement('p');
+  scrollHint.className = 'story-greeting__scroll';
+  scrollHint.textContent = 'scroll ↓';
+
+  greetingInner.appendChild(greetingPhotos);
+  greetingInner.appendChild(greeting);
+  greetingInner.appendChild(softLine);
+  greetingInner.appendChild(scrollHint);
+  greetingSection.appendChild(greetingInner);
+
+  function addPolaroid(className, src, caption) {
+    const wrap = document.createElement('div');
+    wrap.className = `polaroid ${className}`;
+    wrap.innerHTML = `<img alt="" /><span class="polaroid__caption">${caption}</span>`;
+    const img = wrap.querySelector('img');
+    const probe = new Image();
+    probe.onload = () => {
+      img.src = src;
+      lc.trackTimeout(setTimeout(() => wrap.classList.add('polaroid--visible'), 400));
+    };
+    probe.src = src;
+    greetingPhotos.appendChild(wrap);
+  }
+
+  if (CONFIG.photos?.polaroidA) {
+    addPolaroid(
+      'polaroid--a',
+      CONFIG.photos.polaroidA,
+      CONFIG.photos.polaroidCaptions?.a ?? 'us',
+    );
+  }
+  if (CONFIG.photos?.polaroidB) {
+    addPolaroid(
+      'polaroid--b',
+      CONFIG.photos.polaroidB,
+      CONFIG.photos.polaroidCaptions?.b ?? 'that day',
+    );
+  }
+
+  // —— Cinematic chapter ——
+  const cinematicTrack = document.createElement('div');
+  cinematicTrack.className = 'cinematic-track';
+
+  const sticky = document.createElement('div');
+  sticky.className = 'cinematic-sticky';
+
+  const photoWrap = document.createElement('div');
+  photoWrap.className = 'cinematic-photo-wrap';
+
+  const photo = document.createElement('div');
+  photo.className = 'cinematic-photo cinematic-photo--placeholder';
+  photo.innerHTML = 'Your photo goes here<small>public/assets/photo.jpeg</small>';
+
+  const img = new Image();
+  img.src = CONFIG.cinematicPhoto;
+  img.onload = () => {
+    photo.classList.remove('cinematic-photo--placeholder');
+    photo.textContent = '';
+    photo.style.backgroundImage = `url(${img.src})`;
+  };
+
+  const vignette = document.createElement('div');
+  vignette.className = 'cinematic-vignette';
+
+  const linesWrap = document.createElement('div');
+  linesWrap.className = 'cinematic-lines';
+
+  CONFIG.cinematicLines.forEach((line) => {
+    const p = document.createElement('p');
+    p.className = 'cinematic-line';
+    p.textContent = line;
+    linesWrap.appendChild(p);
+  });
+
+  const finale = document.createElement('p');
+  finale.className = 'cinematic-finale';
+  finale.textContent = CONFIG.cinematicFinale;
+
+  photoWrap.appendChild(photo);
+  photoWrap.appendChild(vignette);
+  sticky.appendChild(photoWrap);
+  sticky.appendChild(linesWrap);
+  sticky.appendChild(finale);
+  cinematicTrack.appendChild(sticky);
+
+  // —— Hub intro (after cinematic — scroll to see what's on the site) ——
+  const hubSection = document.createElement('div');
+  hubSection.className = 'story-hub';
+
+  const hubInner = document.createElement('div');
+  hubInner.className = 'story-hub__inner';
+
+  const hubIntro = document.createElement('p');
+  hubIntro.className = 'story-hub__intro';
+  hubIntro.textContent = CONFIG.hubIntro;
+
+  const hubGrid = document.createElement('div');
+  hubGrid.className = 'story-hub__grid';
+
+  CONFIG.hubFeatures.forEach((feature) => {
+    const card = document.createElement('article');
+    card.className = 'story-hub__card screen-card';
+    card.innerHTML = `
+      <span class="story-hub__card-icon">${feature.icon}</span>
+      <h3 class="story-hub__card-title">${feature.title}</h3>
+      <p class="story-hub__card-desc">${feature.description}</p>
+    `;
+    hubGrid.appendChild(card);
+  });
+
+  const hubContinue = document.createElement('button');
+  hubContinue.type = 'button';
+  hubContinue.className = 'btn btn--primary story-hub__continue';
+  hubContinue.textContent = CONFIG.hubContinueLabel;
+
+  hubInner.appendChild(hubIntro);
+  hubInner.appendChild(hubGrid);
+  hubInner.appendChild(hubContinue);
+  hubSection.appendChild(hubInner);
+
+  track.appendChild(greetingSection);
+  track.appendChild(cinematicTrack);
+  track.appendChild(hubSection);
+  scrollRoot.appendChild(track);
+  element.appendChild(scrollRoot);
+
+  const finalText = `Hey ${CONFIG.herName} 🌙`;
+  const SOFT_CHAR_DELAY = 42;
+  const lineEls = () => linesWrap.querySelectorAll('.cinematic-line');
+  let savedScrollTop = 0;
+  let hasVisited = false;
+
+  function getCinematicProgress() {
+    const greetingH = greetingSection.offsetHeight;
+    const maxScroll = scrollRoot.scrollHeight - scrollRoot.clientHeight;
+    const cinematicScrollable = maxScroll - greetingH;
+    if (cinematicScrollable <= 0) return 0;
+    return clamp((scrollRoot.scrollTop - greetingH) / cinematicScrollable);
+  }
+
+  function applyScrollProgress() {
+    const p = getCinematicProgress();
+
+    // Cinematic phases (only after greeting section)
+    const photoPhase = clamp(p / 0.38);
+    const scale = lerp(0.22, 1.08, photoPhase);
+    const photoOpacity = clamp(photoPhase * 1.4);
+    photoWrap.style.opacity = String(photoOpacity);
+    photoWrap.style.transform = `scale(${scale})`;
+
+    const linesStart = 0.32;
+    const linesEnd = 0.72;
+    const lineSpan = (linesEnd - linesStart) / CONFIG.cinematicLines.length;
+
+    lineEls().forEach((line, i) => {
+      const lineStart = linesStart + i * lineSpan;
+      const lineProgress = clamp((p - lineStart) / (lineSpan * 0.85));
+      line.style.opacity = String(lineProgress);
+      line.style.transform = `translateY(${lerp(18, 0, lineProgress)}px)`;
+    });
+
+    const exitPhase = clamp((p - 0.68) / 0.2);
+    photoWrap.style.opacity = String(lerp(photoOpacity, 0, exitPhase));
+    photoWrap.style.transform = `scale(${lerp(scale, 1.2, exitPhase)})`;
+    vignette.style.opacity = String(lerp(0.35, 0.85, exitPhase));
+    linesWrap.style.opacity = String(1 - exitPhase);
+
+    const finalePhase = clamp((p - 0.82) / 0.18);
+    finale.style.opacity = String(finalePhase);
+    finale.style.transform = `translateY(${lerp(24, 0, finalePhase)}px) scale(${lerp(0.96, 1, finalePhase)})`;
+  }
+
+  function scramble(text) {
+    return text
+      .split('')
+      .map((ch) =>
+        ch === ' ' ? ' ' : GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)]
+      )
+      .join('');
+  }
+
+  function runSoftTypewriter() {
+    const text = CONFIG.greetingSoftLine;
+    const textEl = softLine.querySelector('.typewriter__text');
+    const cursor = softLine.querySelector('.typewriter__cursor');
+    textEl.textContent = '';
+    softLine.classList.add('story-greeting__soft--active');
+
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < text.length) {
+        textEl.textContent += text[i];
+        i += 1;
+      } else {
+        clearInterval(interval);
+        if (cursor) cursor.style.opacity = '0';
+      }
+    }, SOFT_CHAR_DELAY);
+    lc.trackInterval(interval);
+  }
+
+  function runGlitch() {
+    const start = Date.now();
+    greeting.textContent = scramble(finalText);
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const progress = elapsed / GLITCH_DURATION;
+
+      if (progress >= 1) {
+        clearInterval(interval);
+        greeting.textContent = finalText;
+        greeting.classList.remove('greeting-text--glitch');
+        greeting.classList.add('greeting-text--resolved');
+        runSoftTypewriter();
+        return;
+      }
+
+      const revealCount = Math.floor(finalText.length * progress);
+      greeting.textContent =
+        finalText.slice(0, revealCount) + scramble(finalText.slice(revealCount));
+    }, 50);
+    lc.trackInterval(interval);
+  }
+
+  function goToBigAsk() {
+    analytics.track(EVENTS.MANUAL_CONTINUE, { from: SCREENS.SCROLL_STORY, to: SCREENS.BIG_ASK });
+    manager.goTo(SCREENS.BIG_ASK);
+  }
+
+  lc.bindListener(hubContinue, 'click', goToBigAsk);
+
+  let rafId = null;
+  function onScrollRaf() {
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      applyScrollProgress();
+    });
+  }
+
+  return {
+    element,
+    onEnter() {
+      lc.reset();
+      scrollRoot.scrollTop = hasVisited ? savedScrollTop : 0;
+      if (!hasVisited) {
+        greeting.classList.add('greeting-text--glitch');
+        greeting.classList.remove('greeting-text--resolved');
+        softLine.classList.remove('story-greeting__soft--active');
+        softLine.querySelector('.typewriter__text').textContent = '';
+        const cursor = softLine.querySelector('.typewriter__cursor');
+        if (cursor) cursor.style.opacity = '';
+        runGlitch();
+      }
+      hasVisited = true;
+      applyScrollProgress();
+      lc.trackListener(scrollRoot, 'scroll', onScrollRaf, { passive: true });
+    },
+    onExit() {
+      savedScrollTop = scrollRoot.scrollTop;
+      lc.reset();
+      if (rafId) cancelAnimationFrame(rafId);
+    },
+  };
+}

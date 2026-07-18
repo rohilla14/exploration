@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+/* Palette pulled from Rhea's photos — warm cream, sky blue, dusty rose, terracotta */
+:root {
+  --cream: #faf6f0;
+  --cream-warm: #f5ede3;
+  --sky: #b8d8ec;
+  --sky-soft: #dceef8;
+  --rose-dusty: #e8b4b8;
+  --rose-deep: #c96b7a;
+  --terracotta: #c45c4a;
+  --burgundy: #7a3b45;
+  --sage: #b5c4aa;
+  --teal: #6aada8;
+  --peach: #f5c6a8;
+  --olive: #6b7355;
+  --butter: #f9e4b7;
+
+  /* Legacy tokens → photo palette */
+  --pink: var(--rose-dusty);
+  --pink-deep: var(--rose-deep);
+  --pink-soft: #fce8ea;
+  --lavender: var(--sky-soft);
+  --purple: var(--teal);
+  --purple-deep: #4a8580;
+  --rose-gold: var(--terracotta);
+  --text: #3d3530;
+  --text-light: #7a6f68;
+  --white: #ffffff;
+  --shadow: rgba(122, 59, 69, 0.12);
+  --shadow-strong: rgba(122, 59, 69, 0.22);
+  --overlay: rgba(45, 38, 36, 0.58);
+  --glass: rgba(255, 252, 248, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.92);
+  --glass-shadow: 0 8px 32px rgba(196, 92, 74, 0.1);
+
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-accent: 'Cormorant Garamond', Georgia, serif;
+
+  --transition: 450ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --radius: 20px;
+  --radius-lg: 32px;
+  --radius-pill: 999px;
+
+  --glow-pink: 0 0 40px rgba(201, 107, 122, 0.28);
+  --glow-purple: 0 0 48px rgba(106, 173, 168, 0.22);
+  --glow-warm: 0 0 36px rgba(245, 198, 168, 0.35);
+  --ease-spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --card-border: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(232, 180, 184, 0.4));
+  --shimmer: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 62%
+  );
+}
