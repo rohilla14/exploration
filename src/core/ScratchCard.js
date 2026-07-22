@@ -61,23 +61,23 @@ export class ScratchCard {
     const h = this.canvas.height / (window.devicePixelRatio || 1);
 
     const grad = this.ctx.createLinearGradient(0, 0, w, h);
-    grad.addColorStop(0, '#c0c0c0');
-    grad.addColorStop(0.5, '#e8e8e8');
-    grad.addColorStop(1, '#a8a8a8');
+    grad.addColorStop(0, '#c4788a');
+    grad.addColorStop(0.45, '#e8b4bc');
+    grad.addColorStop(1, '#a85d6c');
     this.ctx.globalCompositeOperation = 'source-over';
     this.ctx.fillStyle = grad;
     this.ctx.fillRect(0, 0, w, h);
 
-    // grainy texture
-    for (let i = 0; i < 800; i++) {
-      this.ctx.fillStyle = `rgba(${100 + Math.random() * 100},${100 + Math.random() * 100},${100 + Math.random() * 100},0.15)`;
+    for (let i = 0; i < 900; i++) {
+      const shine = 180 + Math.random() * 75;
+      this.ctx.fillStyle = `rgba(${shine},${shine - 40},${shine - 20},0.18)`;
       this.ctx.fillRect(Math.random() * w, Math.random() * h, 2, 2);
     }
 
-    this.ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    this.ctx.font = 'bold 14px Nunito, sans-serif';
+    this.ctx.fillStyle = 'rgba(255,248,245,0.75)';
+    this.ctx.font = '600 14px "Plus Jakarta Sans", sans-serif';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('scratch here ✨', w / 2, h / 2);
+    this.ctx.fillText('scratch here', w / 2, h / 2);
   }
 
   getPos(e) {

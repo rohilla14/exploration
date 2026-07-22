@@ -13,6 +13,9 @@ dist-ssr
 *.local
 server/data/
 .gh-config/
+.env
+server/.env
+.share-logs/
 
 # Editor directories and files
 .vscode/*

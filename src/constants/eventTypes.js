@@ -42,4 +42,14 @@ export const EVENTS = Object.freeze({
   CLICK: 'click',
   VISIBILITY_HIDDEN: 'visibility_hidden',
   VISIBILITY_VISIBLE: 'visibility_visible',
+
+  HUB_APP_OPEN: 'hub_app_open',
+  HUB_APP_BACK: 'hub_app_back',
+  LOVE_NOTE_VIEW: 'love_note_view',
+  QUESTION_ANSWERED: 'question_answered',
+  SONG_ADDED: 'song_added',
+  SONG_BULK_IMPORT: 'song_bulk_import',
+  MOVIE_ADDED: 'movie_added',
+  MOVIE_RATED: 'movie_rated',
+  DIARY_ENTRY_ADDED: 'diary_entry_added',
 });

@@ -35,6 +35,15 @@ export const EVENT_LABELS = {
   easter_egg_open: 'Easter egg found',
   visibility_hidden: 'Tab hidden',
   visibility_visible: 'Tab visible',
+  hub_app_open: 'Opened Our World app',
+  hub_app_back: 'Back to Our World',
+  love_note_view: 'Viewed memory notes',
+  question_answered: 'Answered a question',
+  song_added: 'Added a song',
+  song_bulk_import: 'Bulk-imported songs',
+  movie_added: 'Added a movie',
+  movie_rated: 'Rated a movie',
+  diary_entry_added: 'Wrote a diary entry',
 };
 
 export const SCREEN_LABELS = {
@@ -50,6 +59,7 @@ export const SCREEN_LABELS = {
   'date-planner': 'Date Planner',
   bouquet: 'Bouquet',
   celebration: 'Celebration',
+  hub: 'Our World',
 };
 
 /** @param {string} type */
@@ -68,6 +78,7 @@ export function eventTone(type) {
   if (type === 'big_ask_yes' || type === 'date_confirm') return 'highlight';
   if (type.startsWith('interaction_')) return 'interaction';
   if (type.startsWith('game_') || type === 'heart_caught') return 'game';
+  if (type.startsWith('hub_') || type.includes('note') || type.includes('question') || type.includes('song') || type.includes('movie') || type.includes('diary')) return 'hub';
   if (type.startsWith('screen_')) return 'nav';
   if (type.includes('scratch')) return 'scratch';
   return 'default';

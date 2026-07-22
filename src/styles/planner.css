@@ -135,6 +135,20 @@
   line-height: 1.5;
 }
 
+.planner-lockin__preview {
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.planner-lockin__preview p {
+  margin: 0.15rem 0;
+}
+
 .planner-lockin__input {
   width: 100%;
   padding: 0.75rem 1rem;
@@ -356,6 +370,71 @@
 }
 
 /* Draggable tokens */
+.planner-moods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  width: 100%;
+  margin-bottom: 0.35rem;
+}
+
+.planner-mood {
+  border: none;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.planner-mood--active {
+  background: linear-gradient(135deg, var(--pink-soft), #d9ebe6);
+  color: var(--rose-deep, #c4788a);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.planner-time-presets {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.planner-time-preset {
+  border: none;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.planner-time-preset:hover {
+  background: var(--pink-soft);
+}
+
+.planner-activity__reorder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.planner-activity__move {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--text-light);
+  padding: 0.1rem 0.25rem;
+}
+
 .planner-token {
   display: flex;
   align-items: flex-start;

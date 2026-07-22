@@ -10,6 +10,7 @@ import { SCREENS } from '../constants/screens.js';
 import { initSmileCounter } from './SmileCounter.js';
 import { initInteractionRecorder } from './InteractionRecorder.js';
 import { registerScreens } from '../screens/index.js';
+import { hasCompletedJourney } from '../utils/journey.js';
 
 /**
  * @typedef {object} AppServices
@@ -52,19 +53,25 @@ export class App {
 
 /**
  * Dev shortcut: open `/?screen=bouquet` (or any registered screen id) to skip the flow.
+ * Return visits (journey already completed once) skip straight to the Hub instead of
+ * replaying the whole story from Loading.
  * @param {ScreenManager} manager
  */
 function resolveStartScreen(manager) {
-  if (!import.meta.env.DEV) return SCREENS.LOADING;
-
-  const param = new URLSearchParams(window.location.search).get('screen');
-  if (!param) return SCREENS.LOADING;
-
-  if (manager.screens.has(param)) {
-    console.info(`[dev] Starting at screen: ${param}`);
-    return param;
+  if (import.meta.env.DEV) {
+    const param = new URLSearchParams(window.location.search).get('screen');
+    if (param) {
+      if (manager.screens.has(param)) {
+        console.info(`[dev] Starting at screen: ${param}`);
+        return param;
+      }
+      console.warn(`[dev] Unknown ?screen=${param} — falling back to loading`);
+    }
   }
 
-  console.warn(`[dev] Unknown ?screen=${param} — falling back to loading`);
+  if (hasCompletedJourney() && manager.screens.has(SCREENS.HUB)) {
+    return SCREENS.HUB;
+  }
+
   return SCREENS.LOADING;
 }

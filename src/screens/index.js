@@ -10,6 +10,7 @@ import { createBigAskScreen } from './Screen07BigAsk.js';
 import { createCelebrationScreen } from './Screen08Celebration.js';
 import { createDatePlannerScreen } from './Screen09DatePlanner.js';
 import { createBouquetScreen } from './Screen10Bouquet.js';
+import { createHubScreen } from './Screen11Hub.js';
 
 /**
  * Register every screen in flow order. To add a screen: create factory, add here.
@@ -21,7 +22,8 @@ export function registerScreens({ manager, analytics, confetti }) {
   manager.register(SCREENS.BIG_ASK, createBigAskScreen({ manager, analytics }));
   manager.register(SCREENS.DATE_PLANNER, createDatePlannerScreen({ manager, analytics, confetti }));
   manager.register(SCREENS.BOUQUET, createBouquetScreen({ analytics, confetti }));
-  manager.register(SCREENS.CELEBRATION, createCelebrationScreen({ analytics, confetti }));
+  manager.register(SCREENS.CELEBRATION, createCelebrationScreen({ manager, analytics, confetti }));
+  manager.register(SCREENS.HUB, createHubScreen({ analytics }));
   manager.register(SCREENS.ENVELOPE, createEnvelopeScreen({ manager, analytics }));
   manager.register(SCREENS.REASONS, createReasonsScreen({ manager, analytics }));
   manager.register(SCREENS.GAMES, createGamesHubScreen({ manager, analytics }));

@@ -2,6 +2,7 @@ import { SCREENS } from '../constants/screens.js';
 import { EVENTS } from '../constants/eventTypes.js';
 import { GAME_REGISTRY } from '../games/registry.js';
 import { createLifecycle } from '../utils/lifecycle.js';
+import { getDoneGames, markGameDone } from '../utils/gameProgress.js';
 
 /** @param {{ manager: import('../core/ScreenManager.js').ScreenManager, analytics: import('../analytics/Analytics.js').Analytics }} services */
 export function createGamesHubScreen({ manager, analytics }) {
@@ -42,7 +43,7 @@ export function createGamesHubScreen({ manager, analytics }) {
   overlay.className = 'game-overlay';
   element.appendChild(overlay);
 
-  const completed = new Set();
+  const completed = getDoneGames();
   /** @type {{ destroy: () => void } | null} */
   let activeGame = null;
 
@@ -95,6 +96,7 @@ export function createGamesHubScreen({ manager, analytics }) {
   }
 
   function showResult(game, message, gameArea) {
+    markGameDone(game.id);
     completed.add(game.id);
     analytics.track(EVENTS.GAME_COMPLETE, { gameId: game.id, message });
     updateHub();

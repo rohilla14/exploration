@@ -1,0 +1,19 @@
+import { createMemoryLaneApp } from './apps/MemoryLane.js';
+import { createAskMeAnythingApp } from './apps/AskMeAnything.js';
+import { createOurPlaylistApp } from './apps/OurPlaylist.js';
+import { createMovieNightsApp } from './apps/MovieNights.js';
+import { createDearDiaryApp } from './apps/DearDiary.js';
+
+/** @typedef {import('../analytics/Analytics.js').Analytics} Analytics */
+
+/**
+ * Add or reorder mini-apps here — hub UI updates automatically.
+ * @type {Array<{ id: string, emoji: string, name: string, description: string, factory: (container: HTMLElement, ctx: { analytics: Analytics }) => { start: () => void, destroy: () => void } }>}
+ */
+export const HUB_REGISTRY = [
+  { id: 'memory-lane', factory: createMemoryLaneApp },
+  { id: 'ask-me-anything', factory: createAskMeAnythingApp },
+  { id: 'our-playlist', factory: createOurPlaylistApp },
+  { id: 'movie-nights', factory: createMovieNightsApp },
+  { id: 'dear-diary', factory: createDearDiaryApp },
+];

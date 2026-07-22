@@ -7,6 +7,7 @@ import {
   fetchHealth,
 } from './api.js';
 import { eventLabel, screenLabel, eventTone } from './labels.js';
+import { mountContentManager } from './contentManager.js';
 
 /** @typedef {object} SessionRow
  * @property {string} id
@@ -137,6 +138,12 @@ function payloadSummary(payload) {
   if (typeof p.caught === 'number') parts.push(`${p.caught} hearts`);
   if (typeof p.enabled === 'boolean') parts.push(p.enabled ? 'on' : 'off');
   if (typeof p.cardIndex === 'number') parts.push(`card #${p.cardIndex + 1}`);
+  if (p.appName) parts.push(String(p.appName));
+  if (p.kind) parts.push(`kind: ${p.kind}`);
+  if (p.title) parts.push(`"${p.title}"`);
+  if (p.rater && typeof p.rating === 'number') parts.push(`${p.rater}: ${p.rating}/5`);
+  if (typeof p.added === 'number') parts.push(`${p.added} added`);
+  if (p.entryDate) parts.push(String(p.entryDate));
   return parts.join(' · ');
 }
 
@@ -179,6 +186,7 @@ function renderShell() {
         <div class="panel__head">Top events (all time)</div>
         <ul id="top-events" class="top-events__list"></ul>
       </section>
+      <div id="content-manager-mount"></div>
       <footer class="admin__footer">
         <a href="/">← Back to the experience</a>
       </footer>
@@ -195,6 +203,9 @@ function renderShell() {
       refreshTimer = null;
     }
   });
+
+  const cmMount = root.querySelector('#content-manager-mount');
+  if (cmMount) mountContentManager(cmMount);
 }
 
 /** @param {SessionRow[]} sessions @param {object[]} confirmations @param {object} stats */

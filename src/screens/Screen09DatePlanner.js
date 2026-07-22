@@ -62,6 +62,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
       <div class="planner-lockin__panel screen-card">
         <h3 class="planner-lockin__title">${CONFIG.plannerLockInTitle}</h3>
         <p class="planner-lockin__prompt">${CONFIG.plannerLockInPrompt}</p>
+        <div class="planner-lockin__preview" data-role="lockin-preview"></div>
         <input
           type="text"
           class="planner-lockin__input"
@@ -95,6 +96,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
             </div>
             <div class="planner-time-section" hidden>
               <p class="planner-when-card__section">Now pick a time</p>
+              <div class="planner-time-presets" data-role="time-presets"></div>
               <div class="planner-time">
                 <div class="planner-time__wheels">
                   <div class="planner-wheel" data-wheel="hour"></div>
@@ -103,7 +105,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
                 </div>
                 <p class="planner-time__preview"></p>
               </div>
-              <button type="button" class="btn btn--primary planner-time__next">Next →</button>
+              <button type="button" class="btn btn--primary planner-time__next">Set this time →</button>
             </div>
           </div>
           <div class="planner-palette__extras"></div>
@@ -132,12 +134,14 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
   const lockInError = element.querySelector('.planner-lockin__error');
   const lockInSubmit = element.querySelector('.planner-lockin__submit');
   const lockInBackdrop = element.querySelector('.planner-lockin__backdrop');
+  const lockInPreview = element.querySelector('[data-role="lockin-preview"]');
   const paletteHint = element.querySelector('.planner-palette__hint');
   const dateSection = element.querySelector('.planner-date-section');
   const timeSection = element.querySelector('.planner-time-section');
   const timePreview = element.querySelector('.planner-time__preview');
   const timeNextBtn = element.querySelector('.planner-time__next');
   const timeWheels = element.querySelector('.planner-time__wheels');
+  const timePresetsEl = element.querySelector('[data-role="time-presets"]');
   const paletteExtras = element.querySelector('.planner-palette__extras');
   const tokenTray = element.querySelector('.planner-palette__tokens');
   const calTitle = element.querySelector('.planner-cal__title');
@@ -199,6 +203,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
     activities: /** @type {{ id: string, moodId: string, place: string, emoji: string, moodLabel?: string }[]} */ ([]),
     filled: [false, false],
     stamped: false,
+    selectedMoodId: CONFIG.dateMoods[0]?.id || 'coffee',
   };
 
   let drag = null;
@@ -290,7 +295,10 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
       card.className = 'planner-activity';
       card.dataset.idx = String(idx);
       card.innerHTML = `
-        <button type="button" class="planner-activity__grab" aria-label="Drag to reorder">⋮⋮</button>
+        <div class="planner-activity__reorder">
+          <button type="button" class="planner-activity__move" data-dir="up" aria-label="Move up">↑</button>
+          <button type="button" class="planner-activity__move" data-dir="down" aria-label="Move down">↓</button>
+        </div>
         <span class="planner-activity__emoji">${act.emoji}</span>
         <div class="planner-activity__body">
           <span class="planner-activity__place">${act.place}</span>
@@ -303,8 +311,17 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
         e.stopPropagation();
         removeActivity(idx);
       });
-      card.querySelector('.planner-activity__grab')?.addEventListener('pointerdown', (e) => {
-        beginReorder(e, idx, card);
+      card.querySelectorAll('.planner-activity__move').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const dir = btn.dataset.dir === 'up' ? -1 : 1;
+          const to = idx + dir;
+          if (to < 0 || to >= state.activities.length) return;
+          const [item] = state.activities.splice(idx, 1);
+          state.activities.splice(to, 0, item);
+          analytics.track(EVENTS.DATE_PLANNER_STEP, { action: 'reorder', from: idx, to, ...getPayload() });
+          updatePalette();
+        });
       });
 
       list.appendChild(card);
@@ -325,12 +342,32 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
   function showTimePhase() {
     dateSection.classList.add('planner-date-section--done');
     timeSection.hidden = false;
+    renderTimePresets();
     requestAnimationFrame(() => {
       timeSection.classList.add('planner-time-section--visible');
       timeWheels.classList.add('planner-time__wheels--enter');
     });
     updateTimePreview();
     syncWheels();
+  }
+
+  function renderTimePresets() {
+    if (!timePresetsEl) return;
+    timePresetsEl.innerHTML = '';
+    (CONFIG.plannerTimePresets || []).forEach((preset) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'planner-time-preset';
+      btn.textContent = preset.label;
+      btn.addEventListener('click', () => {
+        state.hour12 = preset.hour;
+        state.minute = preset.minute;
+        state.ampm = preset.ampm;
+        updateTimePreview();
+        syncWheels();
+      });
+      timePresetsEl.appendChild(btn);
+    });
   }
 
   function updatePalette() {
@@ -369,18 +406,33 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
     tokenTray.innerHTML = '';
 
     if (whenComplete() && !state.stamped) {
+      const moodBar = document.createElement('div');
+      moodBar.className = 'planner-moods';
       CONFIG.dateMoods.forEach((mood) => {
-        (CONFIG.datePlaces[mood.id] || []).forEach((place) => {
-          tokenTray.appendChild(
-            makeToken({
-              slot: ITINERARY_SLOT,
-              emoji: mood.emoji,
-              label: place,
-              sub: mood.label,
-              payload: { type: 'activity', moodId: mood.id, place, emoji: mood.emoji },
-            })
-          );
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className =
+          'planner-mood' + (mood.id === state.selectedMoodId ? ' planner-mood--active' : '');
+        chip.textContent = `${mood.emoji} ${mood.label}`;
+        chip.addEventListener('click', () => {
+          state.selectedMoodId = mood.id;
+          refreshTokens();
         });
+        moodBar.appendChild(chip);
+      });
+      tokenTray.appendChild(moodBar);
+
+      const mood = CONFIG.dateMoods.find((m) => m.id === state.selectedMoodId) || CONFIG.dateMoods[0];
+      (CONFIG.datePlaces[mood.id] || []).forEach((place) => {
+        tokenTray.appendChild(
+          makeToken({
+            slot: ITINERARY_SLOT,
+            emoji: mood.emoji,
+            label: place,
+            sub: mood.label,
+            payload: { type: 'activity', moodId: mood.id, place, emoji: mood.emoji },
+          })
+        );
       });
     }
   }
@@ -498,6 +550,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
         btn.disabled = true;
       }
       if (iso === todayIso) btn.classList.add('planner-cal__day--today');
+      if (iso === state.selectedDate) btn.classList.add('planner-cal__day--selected');
       btn.dataset.iso = iso;
 
       if (!isPast && !state.filled[0]) {
@@ -637,9 +690,18 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
     } else {
       const { el, payload } = drag;
       el.classList?.remove('planner-cal__day--dragging');
-      const target = findDropSlot(e.clientX, e.clientY, payload);
-      if ((moved || payload.type === 'date') && target >= 0) {
-        placeInSlot(target, payload);
+      if (payload.type === 'date' && !moved && canDropOnSlot(0, payload)) {
+        placeInSlot(0, payload);
+      } else {
+        const target = findDropSlot(e.clientX, e.clientY, payload);
+        if (moved && target >= 0) {
+          placeInSlot(target, payload);
+        } else if (payload.type === 'activity' && !moved && el.dataset) {
+          // click-to-add handled on token click
+        }
+      }
+      if (payload.type !== 'date' && el.dataset) {
+        el.dataset.dragged = moved ? '1' : '0';
       }
     }
 
@@ -752,12 +814,26 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
   }
 
   function isLockInValid(text) {
-    const n = normalizeLockIn(text);
-    return n.includes('sure') && n.includes('let') && n.includes('go');
+    const n = normalizeLockIn(text)
+      .replace(/,/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return (
+      n === "sure let's go" ||
+      n === 'sure lets go' ||
+      (n.includes('sure') && n.includes('let') && n.includes('go'))
+    );
   }
 
   function openLockIn() {
     if (!canLockIn()) return;
+    if (lockInPreview) {
+      const stops = state.activities.map((a) => `${a.emoji} ${a.place}`).join(' · ');
+      lockInPreview.innerHTML = `
+        <p><strong>${formatDisplayDate(state.selectedDate)}</strong> · ${formatDisplayTime(state.hour12, state.minute, state.ampm)}</p>
+        <p>${stops}</p>
+      `;
+    }
     lockInEl.hidden = false;
     lockInInput.value = '';
     lockInError.hidden = true;

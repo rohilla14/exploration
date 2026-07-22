@@ -2,6 +2,13 @@ import { CONFIG } from '../config.js';
 import { SCREENS } from '../constants/screens.js';
 import { EVENTS } from '../constants/eventTypes.js';
 import { createLifecycle } from '../utils/lifecycle.js';
+import { GAME_REGISTRY } from '../games/registry.js';
+import { getDoneGames, markGameDone } from '../utils/gameProgress.js';
+import { createMemoryLaneApp } from '../hub/apps/MemoryLane.js';
+import { createAskMeAnythingApp } from '../hub/apps/AskMeAnything.js';
+import { createOurPlaylistApp } from '../hub/apps/OurPlaylist.js';
+import { createMovieNightsApp } from '../hub/apps/MovieNights.js';
+import { createDearDiaryApp } from '../hub/apps/DearDiary.js';
 
 const GLITCH_CHARS =
   '!@#$%^&*?~<>[]{}|/\\ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -146,13 +153,16 @@ export function createScrollStoryScreen({ manager, analytics }) {
   hubGrid.className = 'story-hub__grid';
 
   CONFIG.hubFeatures.forEach((feature) => {
-    const card = document.createElement('article');
+    const card = document.createElement('button');
+    card.type = 'button';
     card.className = 'story-hub__card screen-card';
+    card.dataset.featureId = feature.id;
     card.innerHTML = `
       <span class="story-hub__card-icon">${feature.icon}</span>
       <h3 class="story-hub__card-title">${feature.title}</h3>
       <p class="story-hub__card-desc">${feature.description}</p>
     `;
+    card.addEventListener('click', () => openFeature(feature));
     hubGrid.appendChild(card);
   });
 
@@ -171,6 +181,121 @@ export function createScrollStoryScreen({ manager, analytics }) {
   track.appendChild(hubSection);
   scrollRoot.appendChild(track);
   element.appendChild(scrollRoot);
+
+  const featureOverlay = document.createElement('div');
+  featureOverlay.className = 'story-hub-overlay';
+  element.appendChild(featureOverlay);
+
+  /** @type {{ destroy: () => void } | null} */
+  let activeFeature = null;
+
+  function closeFeature() {
+    if (activeFeature) {
+      activeFeature.destroy();
+      activeFeature = null;
+    }
+    featureOverlay.classList.remove('story-hub-overlay--active');
+    featureOverlay.innerHTML = '';
+  }
+
+  function openFeatureOverlay(title, buildBody) {
+    closeFeature();
+    featureOverlay.classList.add('story-hub-overlay--active');
+    featureOverlay.innerHTML = '';
+
+    const header = document.createElement('div');
+    header.className = 'story-hub-overlay__header';
+    header.innerHTML = `<span>${title}</span>`;
+
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'story-hub-overlay__back';
+    backBtn.textContent = '← Back';
+    backBtn.addEventListener('click', closeFeature);
+    header.appendChild(backBtn);
+
+    const area = document.createElement('div');
+    area.className = 'story-hub-overlay__area';
+
+    featureOverlay.appendChild(header);
+    featureOverlay.appendChild(area);
+    buildBody(area);
+  }
+
+  function openGamesPicker(area) {
+    const done = getDoneGames();
+    const grid = document.createElement('div');
+    grid.className = 'games-grid';
+    GAME_REGISTRY.forEach((game) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'game-card' + (done.has(game.id) ? ' game-card--done' : '');
+      card.innerHTML = `
+        <span class="game-card__emoji">${game.emoji}</span>
+        <span class="game-card__name">${game.name}</span>
+      `;
+      card.addEventListener('click', () => {
+        area.innerHTML = '';
+        const header = featureOverlay.querySelector('.story-hub-overlay__header span');
+        if (header) header.textContent = `${game.emoji} ${game.name}`;
+        analytics.track(EVENTS.GAME_OPEN, { gameId: game.id, gameName: game.name, from: 'story-hub' });
+        activeFeature = game.factory(area, {
+          analytics,
+          onComplete: (message) => {
+            markGameDone(game.id);
+            analytics.track(EVENTS.GAME_COMPLETE, { gameId: game.id, message });
+            const result = document.createElement('div');
+            result.className = 'game-result';
+            result.innerHTML = `
+              <p class="game-result__title">${message}</p>
+              <button type="button" class="btn btn--secondary">Back to games</button>
+            `;
+            result.querySelector('button')?.addEventListener('click', () => {
+              if (activeFeature) {
+                activeFeature.destroy();
+                activeFeature = null;
+              }
+              const title = featureOverlay.querySelector('.story-hub-overlay__header span');
+              if (title) title.textContent = '🎮 Mini games';
+              area.innerHTML = '';
+              openGamesPicker(area);
+            });
+            area.appendChild(result);
+          },
+        });
+        activeFeature.start();
+      });
+      grid.appendChild(card);
+    });
+    area.appendChild(grid);
+  }
+
+  function openFeature(feature) {
+    analytics.track(EVENTS.HUB_APP_OPEN, { appId: feature.id, from: 'story-hub' });
+
+    const appFactories = {
+      notes: createMemoryLaneApp,
+      questions: createAskMeAnythingApp,
+      playlist: createOurPlaylistApp,
+      movies: createMovieNightsApp,
+      diary: createDearDiaryApp,
+    };
+
+    if (feature.id === 'games') {
+      openFeatureOverlay(`${feature.icon} ${feature.title}`, (area) => {
+        openGamesPicker(area);
+      });
+      return;
+    }
+
+    const factory = appFactories[feature.id];
+    if (factory) {
+      openFeatureOverlay(`${feature.icon} ${feature.title}`, (area) => {
+        activeFeature = factory(area, { analytics });
+        activeFeature.start();
+      });
+    }
+  }
 
   const finalText = `Hey ${CONFIG.herName} 🌙`;
   const SOFT_CHAR_DELAY = 42;
@@ -307,6 +432,7 @@ export function createScrollStoryScreen({ manager, analytics }) {
     },
     onExit() {
       savedScrollTop = scrollRoot.scrollTop;
+      closeFeature();
       lc.reset();
       if (rafId) cancelAnimationFrame(rafId);
     },

@@ -12,6 +12,7 @@ export const SCREENS = Object.freeze({
   DATE_PLANNER: 'date-planner',
   BOUQUET: 'bouquet',
   CELEBRATION: 'celebration',
+  HUB: 'hub',
 });
 
 /** Registration order — add/remove/reorder screens here only. */
@@ -22,6 +23,7 @@ export const SCREEN_ORDER = Object.freeze([
   SCREENS.DATE_PLANNER,
   SCREENS.BOUQUET,
   SCREENS.CELEBRATION,
+  SCREENS.HUB,
   SCREENS.ENVELOPE,
   SCREENS.REASONS,
   SCREENS.GAMES,

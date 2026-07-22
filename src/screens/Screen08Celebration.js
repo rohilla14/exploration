@@ -1,6 +1,7 @@
 import { CONFIG } from '../config.js';
 import { EVENTS } from '../constants/eventTypes.js';
 import { createLifecycle } from '../utils/lifecycle.js';
+import { SCREENS } from '../constants/screens.js';
 
 const PLAN_KEY = 'exploration.datePlan';
 
@@ -10,8 +11,8 @@ function formatPlanDate(iso) {
   return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
-/** @param {{ analytics: import('../analytics/Analytics.js').Analytics, confetti: import('../core/Confetti.js').Confetti }} services */
-export function createCelebrationScreen({ analytics, confetti }) {
+/** @param {{ manager: import('../core/ScreenManager.js').ScreenManager, analytics: import('../analytics/Analytics.js').Analytics, confetti: import('../core/Confetti.js').Confetti }} services */
+export function createCelebrationScreen({ manager, analytics, confetti }) {
   const lc = createLifecycle();
 
   const element = document.createElement('section');
@@ -45,10 +46,20 @@ export function createCelebrationScreen({ analytics, confetti }) {
   closing.className = 'celebration-closing';
   closing.textContent = CONFIG.closingLine;
 
+  const hubBtn = document.createElement('button');
+  hubBtn.type = 'button';
+  hubBtn.className = 'btn btn--primary celebration-hub-btn';
+  hubBtn.textContent = CONFIG.hubEnterCta;
+  hubBtn.addEventListener('click', () => {
+    analytics.track(EVENTS.HUB_APP_OPEN, { from: 'celebration' });
+    manager.goTo(SCREENS.HUB);
+  });
+
   inner.appendChild(photo);
   inner.appendChild(headline);
   inner.appendChild(planSummary);
   inner.appendChild(closing);
+  inner.appendChild(hubBtn);
   element.appendChild(inner);
 
   function readPlan() {

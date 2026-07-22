@@ -460,6 +460,40 @@
   z-index: 2;
 }
 
+.catch-progress {
+  position: absolute;
+  top: 2.75rem;
+  left: 12%;
+  right: 12%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--sky-soft);
+  z-index: 2;
+  overflow: hidden;
+}
+
+.catch-progress__fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--rose-deep), #5a9e8f);
+  transition: width 0.2s ease;
+}
+
+.catch-toast {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius-pill);
+  padding: 0.35rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--rose-deep);
+  z-index: 3;
+  box-shadow: 0 4px 14px var(--shadow);
+}
+
 .falling-heart {
   position: absolute;
   top: -2.5rem;
@@ -469,6 +503,9 @@
   animation: fall linear forwards;
   z-index: 1;
   pointer-events: auto;
+  border: none;
+  background: none;
+  padding: 0;
 }
 
 @keyframes fall {
@@ -527,6 +564,157 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 0.75rem;
   max-width: 400px;
+}
+
+.memory-wrap {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.memory-hud {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.memory-card__emoji {
+  font-size: 1.35rem;
+  display: block;
+}
+
+.memory-card__label {
+  display: block;
+  font-size: 0.55rem;
+  margin-top: 0.15rem;
+  opacity: 0.85;
+  line-height: 1.2;
+}
+
+.scratch-label {
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--text-light);
+}
+
+.pulse-game {
+  text-align: center;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.pulse-game__hint,
+.pulse-game__round,
+.pulse-game__score {
+  margin: 0.35rem 0;
+}
+
+.pulse-game__orb-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 0;
+}
+
+.pulse-game__orb {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #f7d5dc, var(--rose-deep, #c4788a));
+  box-shadow: 0 0 0 0 rgba(196, 120, 138, 0.35);
+  touch-action: manipulation;
+}
+
+.pulse-game__orb--beat {
+  animation: pulse-beat var(--beat-ms, 700ms) ease-out;
+}
+
+.pulse-game__orb--hit {
+  transform: scale(1.12);
+  box-shadow: 0 0 0 14px rgba(90, 158, 143, 0.2);
+}
+
+.pulse-game__orb--miss {
+  filter: saturate(0.7);
+}
+
+@keyframes pulse-beat {
+  0% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(196, 120, 138, 0.45); }
+  40% { transform: scale(1.08); box-shadow: 0 0 0 18px rgba(196, 120, 138, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(196, 120, 138, 0); }
+}
+
+.us-check {
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.us-check__progress {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+.us-check__prompt {
+  font-family: var(--font-accent);
+  font-size: 1.55rem;
+  margin: 0 0 1.25rem;
+  line-height: 1.3;
+}
+
+.us-check__prompt span {
+  color: var(--text-light);
+  font-size: 0.85em;
+}
+
+.us-check__options {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.us-check__reveal {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px var(--shadow);
+  animation: us-check-in 0.35s ease both;
+}
+
+@keyframes us-check-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.us-check__mine {
+  font-style: italic;
+  color: var(--text-light);
+  margin: 0.5rem 0;
+}
+
+.us-check__overlap {
+  color: #2f5f54;
+  font-weight: 700;
+}
+
+.us-check__diff {
+  color: var(--text-light);
+}
+
+.us-check__score {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--rose-deep, #c4788a);
+}
+
+.us-check__score-sub {
+  color: var(--text-light);
 }
 
 .memory-card {
@@ -661,8 +849,9 @@
 }
 
 /* Screen 7 — Big Ask */
-.screen--bigask-active,
-.screen--bigask-active .big-ask__btn {
+/* Only hide the real cursor while over Yes/No — the emoji replaces it there.
+   Everywhere else on this screen the normal pointer must stay visible. */
+.screen--bigask-active .big-ask__btn:hover {
   cursor: none;
 }
 

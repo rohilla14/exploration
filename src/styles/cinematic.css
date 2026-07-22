@@ -257,10 +257,22 @@
   text-align: left;
 }
 
+@media (max-width: 900px) {
+  .story-hub__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .story-hub__card {
   padding: 1.35rem 1.15rem;
   transition: transform 0.3s var(--ease-spring), box-shadow 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  background: var(--glass);
 }
 
 .story-hub__card:hover {
@@ -291,6 +303,51 @@
 .story-hub__continue {
   font-size: 1.05rem;
   padding: 0.95rem 1.75rem;
+}
+
+.story-hub-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--cream) 0%, var(--cream-warm) 40%, var(--sky-soft) 100%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1.25rem;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.story-hub-overlay--active {
+  display: flex;
+}
+
+.story-hub-overlay__header {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-accent);
+  font-size: 1.3rem;
+  margin-bottom: 1.25rem;
+}
+
+.story-hub-overlay__back {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+}
+
+.story-hub-overlay__back:hover {
+  color: var(--rose-deep);
+}
+
+.story-hub-overlay__area {
+  width: 100%;
+  max-width: 640px;
 }
 
 @media (max-width: 768px) {
