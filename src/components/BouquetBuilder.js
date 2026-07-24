@@ -21,8 +21,11 @@ const SETTLE_MS = 420;
 const FLOWER_TYPES = [
   { id: 'lotus', name: 'Lotus', tag: 'fav ✨' },
   { id: 'rose', name: 'Rose' },
+  { id: 'rose-blush', name: 'Blush rose' },
   { id: 'daisy', name: 'Daisy' },
+  { id: 'daisy-butter', name: 'Butter daisy' },
   { id: 'tulip', name: 'Tulip' },
+  { id: 'tulip-lilac', name: 'Lilac tulip' },
   { id: 'peony', name: 'Peony' },
   { id: 'sprig', name: 'Filler' },
 ];

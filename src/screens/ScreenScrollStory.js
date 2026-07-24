@@ -163,7 +163,9 @@ export function createScrollStoryScreen({ manager, analytics }) {
       <h3 class="story-hub__card-title">${feature.title}</h3>
       <p class="story-hub__card-desc">${feature.description}</p>
     `;
-    card.addEventListener('click', () => openFeature(feature));
+    card.addEventListener('click', () => openFeature(feature, card));
+    card.addEventListener('pointermove', (e) => tiltCard(card, e));
+    card.addEventListener('pointerleave', () => resetCardTilt(card));
     hubGrid.appendChild(card);
   });
 
@@ -195,12 +197,44 @@ export function createScrollStoryScreen({ manager, analytics }) {
       activeFeature.destroy();
       activeFeature = null;
     }
-    featureOverlay.classList.remove('story-hub-overlay--active');
+    featureOverlay.classList.remove('story-hub-overlay--active', 'story-hub-overlay--enter');
+    featureOverlay.style.removeProperty('--overlay-ox');
+    featureOverlay.style.removeProperty('--overlay-oy');
     featureOverlay.innerHTML = '';
   }
 
-  function openFeatureOverlay(title, buildBody) {
+  function tiltCard(card, e) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (e.pointerType === 'touch') return;
+    const r = card.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    card.style.setProperty('--tilt-x', `${(-py * 6).toFixed(2)}deg`);
+    card.style.setProperty('--tilt-y', `${(px * 7).toFixed(2)}deg`);
+    card.classList.add('story-hub__card--tilting');
+  }
+
+  function resetCardTilt(card) {
+    card.style.setProperty('--tilt-x', '0deg');
+    card.style.setProperty('--tilt-y', '0deg');
+    card.classList.remove('story-hub__card--tilting');
+  }
+
+  function openFeatureOverlay(title, buildBody, originCard) {
     closeFeature();
+
+    if (originCard) {
+      const cardRect = originCard.getBoundingClientRect();
+      const hostRect = element.getBoundingClientRect();
+      const ox = ((cardRect.left + cardRect.width / 2 - hostRect.left) / hostRect.width) * 100;
+      const oy = ((cardRect.top + cardRect.height / 2 - hostRect.top) / hostRect.height) * 100;
+      featureOverlay.style.setProperty('--overlay-ox', `${ox}%`);
+      featureOverlay.style.setProperty('--overlay-oy', `${oy}%`);
+    } else {
+      featureOverlay.style.setProperty('--overlay-ox', '50%');
+      featureOverlay.style.setProperty('--overlay-oy', '50%');
+    }
+
     featureOverlay.classList.add('story-hub-overlay--active');
     featureOverlay.innerHTML = '';
 
@@ -221,6 +255,10 @@ export function createScrollStoryScreen({ manager, analytics }) {
     featureOverlay.appendChild(header);
     featureOverlay.appendChild(area);
     buildBody(area);
+
+    requestAnimationFrame(() => {
+      featureOverlay.classList.add('story-hub-overlay--enter');
+    });
   }
 
   function openGamesPicker(area) {
@@ -271,7 +309,7 @@ export function createScrollStoryScreen({ manager, analytics }) {
     area.appendChild(grid);
   }
 
-  function openFeature(feature) {
+  function openFeature(feature, card) {
     analytics.track(EVENTS.HUB_APP_OPEN, { appId: feature.id, from: 'story-hub' });
 
     const appFactories = {
@@ -283,18 +321,26 @@ export function createScrollStoryScreen({ manager, analytics }) {
     };
 
     if (feature.id === 'games') {
-      openFeatureOverlay(`${feature.icon} ${feature.title}`, (area) => {
-        openGamesPicker(area);
-      });
+      openFeatureOverlay(
+        `${feature.icon} ${feature.title}`,
+        (area) => {
+          openGamesPicker(area);
+        },
+        card
+      );
       return;
     }
 
     const factory = appFactories[feature.id];
     if (factory) {
-      openFeatureOverlay(`${feature.icon} ${feature.title}`, (area) => {
-        activeFeature = factory(area, { analytics });
-        activeFeature.start();
-      });
+      openFeatureOverlay(
+        `${feature.icon} ${feature.title}`,
+        (area) => {
+          activeFeature = factory(area, { analytics });
+          activeFeature.start();
+        },
+        card
+      );
     }
   }
 

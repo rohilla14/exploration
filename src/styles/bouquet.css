@@ -286,6 +286,42 @@
   filter: drop-shadow(0 2px 4px rgba(61, 44, 36, 0.1));
 }
 
+.bb-flower-art--blush {
+  filter: hue-rotate(-12deg) saturate(1.15) brightness(1.04);
+}
+
+.bb-flower-art--butter {
+  filter: hue-rotate(28deg) saturate(1.2) brightness(1.06);
+}
+
+.bb-flower-art--lilac {
+  filter: hue-rotate(210deg) saturate(0.95) brightness(1.02);
+}
+
+.bb-flower-art--placed.bb-flower-art--blush {
+  filter: hue-rotate(-12deg) saturate(1.15) brightness(1.04) drop-shadow(0 3px 6px rgba(61, 44, 36, 0.16));
+}
+
+.bb-flower-art--placed.bb-flower-art--butter {
+  filter: hue-rotate(28deg) saturate(1.2) brightness(1.06) drop-shadow(0 3px 6px rgba(61, 44, 36, 0.16));
+}
+
+.bb-flower-art--placed.bb-flower-art--lilac {
+  filter: hue-rotate(210deg) saturate(0.95) brightness(1.02) drop-shadow(0 3px 6px rgba(61, 44, 36, 0.16));
+}
+
+.bb-flower-art--tray.bb-flower-art--blush {
+  filter: hue-rotate(-12deg) saturate(1.15) brightness(1.04) drop-shadow(0 2px 4px rgba(61, 44, 36, 0.1));
+}
+
+.bb-flower-art--tray.bb-flower-art--butter {
+  filter: hue-rotate(28deg) saturate(1.2) brightness(1.06) drop-shadow(0 2px 4px rgba(61, 44, 36, 0.1));
+}
+
+.bb-flower-art--tray.bb-flower-art--lilac {
+  filter: hue-rotate(210deg) saturate(0.95) brightness(1.02) drop-shadow(0 2px 4px rgba(61, 44, 36, 0.1));
+}
+
 .bb-tray {
   position: relative;
   z-index: 10;

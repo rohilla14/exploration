@@ -567,8 +567,11 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
     if (state.stamped) return;
     if (payload.type === 'date' && state.filled[0]) return;
     if (payload.type === 'activity' && !whenComplete()) return;
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
 
     e.preventDefault();
+    el.setPointerCapture?.(e.pointerId);
+
     const r = el.getBoundingClientRect();
     const ghost = document.createElement('div');
     ghost.className =
@@ -587,6 +590,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
       el,
       payload,
       ghost,
+      pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
       offsetX: e.clientX - r.left - r.width / 2,
@@ -609,6 +613,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
 
   function onPointerMove(e) {
     if (!drag) return;
+    if (drag.pointerId != null && e.pointerId !== drag.pointerId) return;
     if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) > DRAG_THRESHOLD) {
       drag.moved = true;
     }
@@ -642,8 +647,10 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
 
   function beginReorder(e, fromIdx, card) {
     if (state.stamped) return;
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
     e.preventDefault();
     e.stopPropagation();
+    card.setPointerCapture?.(e.pointerId);
 
     const r = card.getBoundingClientRect();
     const ghost = card.cloneNode(true);
@@ -655,6 +662,8 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
       type: 'reorder',
       fromIdx,
       ghost,
+      el: card,
+      pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
       offsetX: e.clientX - r.left - r.width / 2,
@@ -669,6 +678,15 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
 
   function onPointerUp(e) {
     if (!drag) return;
+    if (drag.pointerId != null && e.pointerId !== drag.pointerId) return;
+
+    if (drag.el) {
+      try {
+        drag.el.releasePointerCapture?.(e.pointerId);
+      } catch {
+        /* already released */
+      }
+    }
 
     const { ghost, moved } = drag;
     ghost.remove();
@@ -934,8 +952,8 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
       renderCalendar();
       syncWheels();
       updatePalette();
-      if (CONFIG.photos?.plannerAccent && welcomeBg) {
-        applyCoverBackground(welcomeBg, CONFIG.photos.plannerAccent);
+      if (CONFIG.photos?.plannerWelcome && welcomeBg) {
+        applyCoverBackground(welcomeBg, CONFIG.photos.plannerWelcome);
       }
     },
     onExit() {

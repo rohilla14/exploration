@@ -26,7 +26,11 @@ export function createCelebrationScreen({ manager, analytics, confetti }) {
   photo.textContent = 'Your photo goes here 💕';
 
   const img = new Image();
-  img.src = CONFIG.cinematicPhoto ?? CONFIG.photos?.cinematic ?? '/assets/photo.jpeg';
+  img.src =
+    CONFIG.photos?.celebration ||
+    CONFIG.cinematicPhoto ||
+    CONFIG.photos?.cinematic ||
+    '/assets/photo.jpeg';
   img.onload = () => {
     photo.classList.remove('celebration-photo--placeholder');
     photo.textContent = '';

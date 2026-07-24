@@ -19,7 +19,7 @@ import { createHubScreen } from './Screen11Hub.js';
 export function registerScreens({ manager, analytics, confetti }) {
   manager.register(SCREENS.LOADING, createLoadingScreen({ manager, analytics }));
   manager.register(SCREENS.SCROLL_STORY, createScrollStoryScreen({ manager, analytics }));
-  manager.register(SCREENS.BIG_ASK, createBigAskScreen({ manager, analytics }));
+  manager.register(SCREENS.BIG_ASK, createBigAskScreen({ manager, analytics, confetti }));
   manager.register(SCREENS.DATE_PLANNER, createDatePlannerScreen({ manager, analytics, confetti }));
   manager.register(SCREENS.BOUQUET, createBouquetScreen({ analytics, confetti }));
   manager.register(SCREENS.CELEBRATION, createCelebrationScreen({ manager, analytics, confetti }));

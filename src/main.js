@@ -1,5 +1,6 @@
 import './styles/variables.css';
 import './styles/global.css';
+import './styles/lively.css';
 import './styles/screens.css';
 import './styles/cinematic.css';
 import './styles/planner.css';

@@ -18,11 +18,11 @@ export function createBouquetScreen({ analytics, confetti }) {
     vaseLabel: CONFIG.bouquetVaseLabel,
     onFlowerPlaced({ flowerId, count }) {
       analytics.track(EVENTS.BOUQUET_FLOWER_PLACED, { flowerId, count });
-      if (count % 3 === 0) confetti.burst(40);
+      if (count % 3 === 0) confetti.burst(18);
     },
     onMilestone({ count }) {
       analytics.track(EVENTS.BOUQUET_COMPLETE, { count });
-      confetti.burst(80);
+      confetti.burst(55);
     },
   });
 

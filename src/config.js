@@ -8,7 +8,7 @@
 //   IMG_2852.JPG                            → polaroid A
 //   628bf372-9d06-4db2-9acd-14e13021f468.jpg → polaroid B
 //   cacb8ec6-cba6-4214-9f62-0759952ade21.jpg → planner welcome
-//   245eedf8-8997-4501-b6c9-a70cd89b94e1.jpg → spare / swap in anytime
+//   245eedf8-8997-4501-b6c9-a70cd89b94e1.jpg → celebration
 //
 // ============================================================
 
@@ -27,6 +27,8 @@ export const CONFIG = {
     polaroidA: '/assets/IMG_2852.JPG',
     polaroidB: '/assets/628bf372-9d06-4db2-9acd-14e13021f468.jpg',
     plannerAccent: '/assets/cacb8ec6-cba6-4214-9f62-0759952ade21.jpg',
+    plannerWelcome: '/assets/cacb8ec6-cba6-4214-9f62-0759952ade21.jpg',
+    celebration: '/assets/245eedf8-8997-4501-b6c9-a70cd89b94e1.jpg',
     polaroidCaptions: { a: '✨', b: 'that day' },
   },
 

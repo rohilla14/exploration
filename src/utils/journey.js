@@ -1,5 +1,6 @@
 const JOURNEY_COMPLETE_KEY = 'exploration.journeyComplete';
 const GREETING_INDEX_KEY = 'exploration.hubGreetingIndex';
+const HUB_VISIT_PREFIX = 'exploration.hubVisit.';
 
 export function hasCompletedJourney() {
   try {
@@ -37,4 +38,37 @@ export function nextGreeting(greetings) {
   }
 
   return greeting;
+}
+
+export function getHubAppLastVisit(appId) {
+  try {
+    return Number(localStorage.getItem(HUB_VISIT_PREFIX + appId) || '0') || 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function markHubAppVisited(appId) {
+  try {
+    localStorage.setItem(HUB_VISIT_PREFIX + appId, String(Date.now()));
+  } catch {
+    // ignore
+  }
+}
+
+/** Parse SQLite datetime / ISO strings into ms. */
+export function parseContentTime(value) {
+  if (!value) return 0;
+  if (typeof value === 'number') return value;
+  const normalized = String(value).includes('T')
+    ? String(value)
+    : `${String(value).replace(' ', 'T')}Z`;
+  const ms = Date.parse(normalized);
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+export function hasNewerContent(timestamps, lastVisitMs) {
+  // No prior visit → no "new" badge (first look isn't treated as unread).
+  if (!lastVisitMs) return false;
+  return (timestamps || []).some((t) => parseContentTime(t) > lastVisitMs);
 }

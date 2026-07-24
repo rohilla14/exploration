@@ -2,6 +2,7 @@ import { CONFIG } from '../config.js';
 import { SCREENS } from '../constants/screens.js';
 import { EVENTS } from '../constants/eventTypes.js';
 import { createLifecycle } from '../utils/lifecycle.js';
+import { createAmbientAtmosphere } from '../core/AmbientAtmosphere.js';
 
 const PROXIMITY = 100;
 const DODGE_RADIUS = 72;
@@ -9,12 +10,14 @@ const CHASE_CAPTURE_MS = 2000;
 const DODGE_COOLDOWN_MS = 180;
 const DODGE_STRENGTH = 0.28;
 
-/** @param {{ manager: import('../core/ScreenManager.js').ScreenManager, analytics: import('../analytics/Analytics.js').Analytics }} services */
-export function createBigAskScreen({ manager, analytics }) {
+/** @param {{ manager: import('../core/ScreenManager.js').ScreenManager, analytics: import('../analytics/Analytics.js').Analytics, confetti: import('../core/Confetti.js').Confetti }} services */
+export function createBigAskScreen({ manager, analytics, confetti }) {
   const lc = createLifecycle();
 
   const element = document.createElement('section');
   element.className = 'screen screen--bigask';
+
+  const atmosphere = createAmbientAtmosphere(element, { intensity: 'bigask' });
 
   const inner = document.createElement('div');
   inner.className = 'screen__inner screen-card';
@@ -188,7 +191,13 @@ export function createBigAskScreen({ manager, analytics }) {
 
   lc.bindListener(yesBtn, 'click', () => {
     analytics.track(EVENTS.BIG_ASK_YES);
-    manager.goTo(SCREENS.DATE_PLANNER);
+    yesBtn.disabled = true;
+    confetti?.burst(90);
+    lc.trackTimeout(
+      setTimeout(() => {
+        manager.goTo(SCREENS.DATE_PLANNER);
+      }, 450)
+    );
   });
 
   lc.bindListener(yesBtn, 'mouseenter', () => {
@@ -210,12 +219,22 @@ export function createBigAskScreen({ manager, analytics }) {
     if (hoverTarget === 'no') hideCursorEmoji();
   });
 
-  const onMove = (e) => {
+  const onMove = (clientX, clientY) => {
     if (hoverTarget) {
-      moveCursorEmoji(e.clientX, e.clientY);
+      moveCursorEmoji(clientX, clientY);
     }
-    scaleYes(e.clientX, e.clientY);
-    dodgeNo(e.clientX, e.clientY);
+    scaleYes(clientX, clientY);
+    dodgeNo(clientX, clientY);
+  };
+
+  const onMouseMove = (e) => {
+    onMove(e.clientX, e.clientY);
+  };
+
+  const onTouchPoint = (e) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    onMove(touch.clientX, touch.clientY);
   };
 
   return {
@@ -226,12 +245,18 @@ export function createBigAskScreen({ manager, analytics }) {
       hideCursorEmoji();
       element.classList.add('screen--bigask-active');
       requestAnimationFrame(layoutNoButton);
-      lc.trackListener(document, 'mousemove', onMove);
+      lc.trackListener(document, 'mousemove', onMouseMove);
+      lc.trackListener(document, 'touchstart', onTouchPoint, { passive: true });
+      lc.trackListener(document, 'touchmove', onTouchPoint, { passive: true });
     },
     onExit() {
       lc.reset();
       element.classList.remove('screen--bigask-active');
       hideCursorEmoji();
+    },
+    destroy() {
+      atmosphere.destroy();
+      cursorEmoji.remove();
     },
   };
 }

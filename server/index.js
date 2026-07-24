@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -114,9 +115,28 @@ app.use(
   diaryRouter
 );
 
+const rateLimitMessage = { error: 'Too many requests, please slow down.' };
+
+const musicRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.MUSIC_RATE_LIMIT_MAX) || 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: rateLimitMessage,
+});
+
+const aiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.AI_RATE_LIMIT_MAX) || 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: rateLimitMessage,
+});
+
 // Music: public may search/list/add; admin deletes.
 app.use(
   '/api/music',
+  musicRateLimit,
   (req, res, next) => {
     if (req.method === 'DELETE') return requireAdminAuth(req, res, next);
     next();
@@ -124,7 +144,7 @@ app.use(
   musicRouter
 );
 
-app.use('/api/ai', aiRouter);
+app.use('/api/ai', aiRateLimit, aiRouter);
 
 if (existsSync(distPath)) {
   // Gate admin HTML before static so /admin.html is not open.
