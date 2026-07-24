@@ -902,6 +902,15 @@
   margin: 0;
 }
 
+.diary-composer__prompt {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  line-height: 1.35;
+}
+
 .diary-composer__moods {
   display: flex;
   gap: 0.35rem;

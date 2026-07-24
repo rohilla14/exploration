@@ -9,6 +9,7 @@ import { createAskMeAnythingApp } from '../hub/apps/AskMeAnything.js';
 import { createOurPlaylistApp } from '../hub/apps/OurPlaylist.js';
 import { createMovieNightsApp } from '../hub/apps/MovieNights.js';
 import { createDearDiaryApp } from '../hub/apps/DearDiary.js';
+import Lenis from 'lenis';
 
 const GLITCH_CHARS =
   '!@#$%^&*?~<>[]{}|/\\ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -404,6 +405,14 @@ export function createScrollStoryScreen({ manager, analytics }) {
   lc.bindListener(hubContinue, 'click', goToBigAsk);
 
   let rafId = null;
+  /** @type {import('lenis').default | null} */
+  let lenis = null;
+  let lenisRafId = null;
+
+  function prefersReducedMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
   function onScrollRaf() {
     if (rafId) return;
     rafId = requestAnimationFrame(() => {
@@ -412,10 +421,44 @@ export function createScrollStoryScreen({ manager, analytics }) {
     });
   }
 
+  function destroyLenis() {
+    if (lenisRafId) {
+      cancelAnimationFrame(lenisRafId);
+      lenisRafId = null;
+    }
+    if (lenis) {
+      lenis.destroy();
+      lenis = null;
+    }
+  }
+
+  function initLenis() {
+    destroyLenis();
+
+    lenis = new Lenis({
+      wrapper: scrollRoot,
+      content: track,
+      duration: 1.1,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+
+    lenis.on('scroll', () => {
+      applyScrollProgress();
+    });
+
+    function raf(time) {
+      if (!lenis) return;
+      lenis.raf(time);
+      lenisRafId = requestAnimationFrame(raf);
+    }
+    lenisRafId = requestAnimationFrame(raf);
+  }
+
   return {
     element,
     onEnter() {
       lc.reset();
+      destroyLenis();
       scrollRoot.scrollTop = hasVisited ? savedScrollTop : 0;
       if (!hasVisited) {
         greeting.classList.add('greeting-text--glitch');
@@ -428,11 +471,17 @@ export function createScrollStoryScreen({ manager, analytics }) {
       }
       hasVisited = true;
       applyScrollProgress();
-      lc.trackListener(scrollRoot, 'scroll', onScrollRaf, { passive: true });
+
+      if (prefersReducedMotion()) {
+        lc.trackListener(scrollRoot, 'scroll', onScrollRaf, { passive: true });
+      } else {
+        initLenis();
+      }
     },
     onExit() {
       savedScrollTop = scrollRoot.scrollTop;
       closeFeature();
+      destroyLenis();
       lc.reset();
       if (rafId) cancelAnimationFrame(rafId);
     },

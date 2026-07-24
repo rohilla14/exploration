@@ -41,6 +41,7 @@ export function createDearDiaryApp(container, { analytics }) {
       <form class="diary-composer" data-role="composer">
         <p class="diary-composer__date" data-role="composer-date"></p>
         <div class="diary-composer__moods" data-role="mood-picker"></div>
+        <p class="diary-composer__prompt" data-role="ai-prompt">${CONFIG.diaryAiPromptLoading}</p>
         <textarea class="diary-composer__input" placeholder="${CONFIG.diaryPlaceholder}" required></textarea>
         <button type="submit" class="btn btn--primary">${CONFIG.diarySubmit}</button>
       </form>
@@ -53,6 +54,7 @@ export function createDearDiaryApp(container, { analytics }) {
   const calGrid = container.querySelector('[data-role="cal-grid"]');
   const composerDate = container.querySelector('[data-role="composer-date"]');
   const moodPicker = container.querySelector('[data-role="mood-picker"]');
+  const aiPromptEl = container.querySelector('[data-role="ai-prompt"]');
   const composer = container.querySelector('[data-role="composer"]');
   const list = container.querySelector('[data-role="list"]');
 
@@ -156,6 +158,18 @@ export function createDearDiaryApp(container, { analytics }) {
     }
   }
 
+  async function loadAiPrompt() {
+    if (!aiPromptEl) return;
+    try {
+      const { prompt } = await hubApi.aiDiaryPrompt({ recentMood: selectedMood });
+      if (destroyed || !aiPromptEl.isConnected) return;
+      aiPromptEl.textContent = prompt || CONFIG.diaryAiPromptFallback;
+    } catch {
+      if (!aiPromptEl.isConnected) return;
+      aiPromptEl.textContent = CONFIG.diaryAiPromptFallback;
+    }
+  }
+
   container.querySelectorAll('.diary-cal__nav').forEach((btn) => {
     btn.addEventListener('click', () => {
       viewMonth.setMonth(viewMonth.getMonth() + Number(btn.dataset.dir));
@@ -192,6 +206,7 @@ export function createDearDiaryApp(container, { analytics }) {
       renderMoodPicker();
       updateComposerDate();
       loadEntries();
+      loadAiPrompt();
     },
     destroy() {
       destroyed = true;

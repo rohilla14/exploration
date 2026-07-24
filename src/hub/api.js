@@ -77,4 +77,10 @@ export const hubApi = {
   aiSpark(payload) {
     return request('/ai/spark', { method: 'POST', body: payload });
   },
+  aiDiaryPrompt(payload = {}) {
+    return request('/ai/diary-prompt', { method: 'POST', body: payload });
+  },
+  aiThisOrThatReaction(payload) {
+    return request('/ai/this-or-that-reaction', { method: 'POST', body: payload });
+  },
 };

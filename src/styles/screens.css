@@ -550,6 +550,26 @@
   background: linear-gradient(135deg, var(--cream-warm), var(--sky-soft));
 }
 
+.option-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.option-btn--picked {
+  opacity: 1;
+  border-color: var(--rose-dusty);
+  background: linear-gradient(135deg, var(--cream-warm), var(--pink-soft));
+}
+
+.tot-reaction {
+  margin: 1.25rem 0 0;
+  min-height: 1.4em;
+  font-size: 0.95rem;
+  color: var(--text-light);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+}
+
 .tot-summary {
   background: var(--white);
   border-radius: var(--radius-lg);

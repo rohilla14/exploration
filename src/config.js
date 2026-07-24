@@ -376,4 +376,8 @@ export const CONFIG = {
   diarySubmit: 'Save entry',
   diaryEmpty: 'No entries yet, your first thought is one text box away 📝',
   diaryMoods: ['😊', '😌', '😢', '😍', '😤', '😴', '🥰', '😔'],
+  diaryAiPromptLoading: 'Finding a gentle prompt…',
+  diaryAiPromptFallback: 'What made you smile today, even a little?',
+
+  thisOrThatReactionLoading: '…',
 };
