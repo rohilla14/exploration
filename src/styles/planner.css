@@ -65,7 +65,7 @@
 
 .planner-welcome__title {
   font-family: var(--font-accent);
-  font-size: clamp(2rem, 6vw, 2.85rem);
+  font-size: var(--text-title);
   line-height: 1.2;
   color: #fff;
   margin-bottom: 0.85rem;

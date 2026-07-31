@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db.js';
+import { searchMovies, credentialsConfigured } from '../tmdb.js';
 
 export const moviesRouter = Router();
 
@@ -13,12 +14,43 @@ function moviesWithRatings() {
   }));
 }
 
+moviesRouter.get('/search', async (req, res) => {
+  const { q } = req.query;
+
+  if (!q?.trim()) {
+    res.status(400).json({ error: 'q query param is required' });
+    return;
+  }
+
+  if (!credentialsConfigured()) {
+    res.status(503).json({
+      error:
+        'TMDB search is not configured yet. Add TMDB_API_KEY to server/.env (free, from themoviedb.org/settings/api).',
+    });
+    return;
+  }
+
+  try {
+    const results = await searchMovies(q.trim());
+    res.json(results);
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
 moviesRouter.get('/', (_req, res) => {
   res.json(moviesWithRatings());
 });
 
 moviesRouter.post('/', (req, res) => {
-  const { title, note = null, posterEmoji = null, addedBy = 'you' } = req.body ?? {};
+  const {
+    title,
+    note = null,
+    posterEmoji = null,
+    addedBy = 'you',
+    tmdbId = null,
+    posterPath = null,
+  } = req.body ?? {};
 
   if (!title?.trim()) {
     res.status(400).json({ error: 'title is required' });
@@ -30,8 +62,11 @@ moviesRouter.post('/', (req, res) => {
   }
 
   const result = db
-    .prepare('INSERT INTO movies (title, note, poster_emoji, added_by) VALUES (?, ?, ?, ?)')
-    .run(title.trim(), note, posterEmoji, addedBy);
+    .prepare(
+      `INSERT INTO movies (title, note, poster_emoji, tmdb_id, poster_path, added_by)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    )
+    .run(title.trim(), note, posterEmoji, tmdbId, posterPath, addedBy);
 
   const row = db.prepare('SELECT * FROM movies WHERE id = ?').get(result.lastInsertRowid);
   res.status(201).json({ ...row, ratings: [] });

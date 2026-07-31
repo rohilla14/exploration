@@ -47,12 +47,14 @@
 }
 
 /* Primary buttons — soft shimmer */
-.btn--primary {
+.btn--primary,
+.btn--yes {
   position: relative;
   overflow: hidden;
 }
 
-.btn--primary::after {
+.btn--primary::after,
+.btn--yes::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -66,7 +68,8 @@
   transition: transform 0.6s ease;
 }
 
-.btn--primary:hover::after {
+.btn--primary:hover::after,
+.btn--yes:hover::after {
   transform: translateX(120%);
 }
 

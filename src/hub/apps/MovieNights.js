@@ -1,8 +1,10 @@
 import { CONFIG } from '../../config.js';
 import { EVENTS } from '../../constants/eventTypes.js';
 import { hubApi } from '../api.js';
+import { debounce } from '../../utils/async.js';
 
 const STARS = [1, 2, 3, 4, 5];
+const SEARCH_DEBOUNCE_MS = 300;
 
 /** @param {HTMLElement} container @param {{ analytics: import('../../analytics/Analytics.js').Analytics }} ctx */
 export function createMovieNightsApp(container, { analytics }) {
@@ -13,6 +15,12 @@ export function createMovieNightsApp(container, { analytics }) {
     <div class="hub-app hub-app--movies">
       <p class="hub-app__subtitle">${CONFIG.movieSubtitle}</p>
       <p class="movie-affinity" data-role="affinity" hidden></p>
+
+      <div class="movie-search">
+        <input type="text" class="movie-search__input" placeholder="${CONFIG.movieSearchPlaceholder}" />
+        <div class="movie-search__results" data-role="search-results"></div>
+      </div>
+
       <form class="movie-add-form" data-role="add-form">
         <input type="text" class="movie-add-form__title" placeholder="${CONFIG.movieAddPlaceholder}" required />
         <input type="text" class="movie-add-form__note" placeholder="${CONFIG.movieAddNotePlaceholder}" />
@@ -25,6 +33,8 @@ export function createMovieNightsApp(container, { analytics }) {
   const list = container.querySelector('[data-role="list"]');
   const affinityEl = container.querySelector('[data-role="affinity"]');
   const addForm = container.querySelector('[data-role="add-form"]');
+  const searchInput = container.querySelector('.movie-search__input');
+  const searchResults = container.querySelector('[data-role="search-results"]');
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -67,6 +77,13 @@ export function createMovieNightsApp(container, { analytics }) {
     ).join('');
   }
 
+  function posterArtMarkup(movie) {
+    if (movie.poster_path) {
+      return `<img class="movie-poster__img" src="${escapeHtml(movie.poster_path)}" alt="" loading="lazy" />`;
+    }
+    return `<span class="movie-poster__emoji">${movie.poster_emoji || '🎬'}</span>`;
+  }
+
   function renderCard(movie) {
     const herRating = ratingFor(movie, 'her');
     const hisRating = ratingFor(movie, 'you');
@@ -76,7 +93,7 @@ export function createMovieNightsApp(container, { analytics }) {
     card.className = `movie-poster${matched ? ' movie-poster--match' : ''}`;
     card.innerHTML = `
       <div class="movie-poster__art" aria-hidden="true">
-        <span class="movie-poster__emoji">${movie.poster_emoji || '🎬'}</span>
+        ${posterArtMarkup(movie)}
       </div>
       <div class="movie-poster__body">
         <div class="movie-poster__top">
@@ -118,11 +135,73 @@ export function createMovieNightsApp(container, { analytics }) {
   function renderList() {
     updateAffinity();
     if (!movies.length) {
-      list.innerHTML = `<p class="hub-empty">${CONFIG.movieEmpty}</p>`;
+      list.innerHTML = `
+        <div class="hub-empty">
+          <p>${CONFIG.movieEmpty}</p>
+          <p class="movie-setup-hint">${CONFIG.movieSetupHint}</p>
+        </div>
+      `;
       return;
     }
     list.innerHTML = '';
     movies.forEach((movie) => list.appendChild(renderCard(movie)));
+  }
+
+  function renderSearchResults(results, errorMessage) {
+    if (errorMessage) {
+      searchResults.innerHTML = `<p class="hub-error">${escapeHtml(errorMessage)}</p>
+        <p class="movie-setup-hint">${CONFIG.movieSetupHint}</p>`;
+      searchResults.classList.add('movie-search__results--open');
+      return;
+    }
+    if (!results.length) {
+      searchResults.innerHTML = '';
+      searchResults.classList.remove('movie-search__results--open');
+      return;
+    }
+
+    searchResults.classList.add('movie-search__results--open');
+    searchResults.innerHTML = results
+      .map(
+        (r, i) => `
+        <div class="movie-result" data-index="${i}">
+          ${
+            r.posterPath
+              ? `<img class="movie-result__art" src="${escapeHtml(r.posterPath)}" alt="" />`
+              : '<span class="movie-result__art movie-result__art--placeholder">🎬</span>'
+          }
+          <div class="movie-result__meta">
+            <span class="movie-result__title">${escapeHtml(r.title)}</span>
+            <span class="movie-result__year">${escapeHtml(r.year || '')}</span>
+          </div>
+          <button type="button" class="btn btn--secondary movie-result__add" data-index="${i}">Add</button>
+        </div>
+      `
+      )
+      .join('');
+
+    searchResults.querySelectorAll('.movie-result__add').forEach((btn) => {
+      btn.addEventListener('click', () => addFromSearch(results[Number(btn.dataset.index)]));
+    });
+  }
+
+  async function addFromSearch(result) {
+    try {
+      const movie = await hubApi.addMovie({
+        title: result.year ? `${result.title} (${result.year})` : result.title,
+        tmdbId: result.tmdbId,
+        posterPath: result.posterPath,
+        addedBy: 'her',
+      });
+      if (destroyed) return;
+      analytics.track(EVENTS.MOVIE_ADDED, { movieId: movie.id, title: movie.title, tmdbId: result.tmdbId });
+      movies = [movie, ...movies];
+      renderSearchResults([]);
+      searchInput.value = '';
+      renderList();
+    } catch {
+      // leave search open so they can retry
+    }
   }
 
   async function load() {
@@ -135,6 +214,26 @@ export function createMovieNightsApp(container, { analytics }) {
       list.innerHTML = `<p class="hub-error">Couldn't load movies right now (${err.message}).</p>`;
     }
   }
+
+  const runSearch = debounce(async (query) => {
+    try {
+      const results = await hubApi.searchMovies(query);
+      if (destroyed) return;
+      renderSearchResults(results);
+    } catch (err) {
+      if (destroyed) return;
+      renderSearchResults([], err.message);
+    }
+  }, SEARCH_DEBOUNCE_MS);
+
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.trim();
+    if (!query) {
+      renderSearchResults([]);
+      return;
+    }
+    runSearch(query);
+  });
 
   addForm.addEventListener('submit', async (e) => {
     e.preventDefault();

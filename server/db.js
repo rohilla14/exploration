@@ -75,6 +75,8 @@ db.exec(`
     title TEXT NOT NULL,
     note TEXT,
     poster_emoji TEXT,
+    tmdb_id INTEGER,
+    poster_path TEXT,
     added_by TEXT NOT NULL DEFAULT 'you' CHECK (added_by IN ('you', 'her')),
     added_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
@@ -128,6 +130,18 @@ try {
 
 try {
   db.exec(`ALTER TABLE questions ADD COLUMN depth TEXT NOT NULL DEFAULT 'closer'`);
+} catch {
+  // column already exists
+}
+
+try {
+  db.exec(`ALTER TABLE movies ADD COLUMN tmdb_id INTEGER`);
+} catch {
+  // column already exists
+}
+
+try {
+  db.exec(`ALTER TABLE movies ADD COLUMN poster_path TEXT`);
 } catch {
   // column already exists
 }

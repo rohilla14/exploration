@@ -38,6 +38,9 @@ export const hubApi = {
   listMovies() {
     return request('/movies');
   },
+  searchMovies(q) {
+    return request(`/movies/search?q=${encodeURIComponent(q)}`);
+  },
   addMovie(payload) {
     return request('/movies', { method: 'POST', body: payload });
   },

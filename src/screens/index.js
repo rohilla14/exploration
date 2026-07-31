@@ -1,11 +1,6 @@
 import { SCREENS } from '../constants/screens.js';
 import { createLoadingScreen } from './Screen00Loading.js';
 import { createScrollStoryScreen } from './ScreenScrollStory.js';
-import { createEnvelopeScreen } from './Screen02Envelope.js';
-import { createReasonsScreen } from './Screen03Reasons.js';
-import { createGamesHubScreen } from './Screen04GamesHub.js';
-import { createAnticipationScreen } from './Screen05Anticipation.js';
-import { createPreAskScreen } from './Screen06PreAsk.js';
 import { createBigAskScreen } from './Screen07BigAsk.js';
 import { createCelebrationScreen } from './Screen08Celebration.js';
 import { createDatePlannerScreen } from './Screen09DatePlanner.js';
@@ -24,9 +19,4 @@ export function registerScreens({ manager, analytics, confetti }) {
   manager.register(SCREENS.BOUQUET, createBouquetScreen({ analytics, confetti }));
   manager.register(SCREENS.CELEBRATION, createCelebrationScreen({ manager, analytics, confetti }));
   manager.register(SCREENS.HUB, createHubScreen({ analytics }));
-  manager.register(SCREENS.ENVELOPE, createEnvelopeScreen({ manager, analytics }));
-  manager.register(SCREENS.REASONS, createReasonsScreen({ manager, analytics }));
-  manager.register(SCREENS.GAMES, createGamesHubScreen({ manager, analytics }));
-  manager.register(SCREENS.ANTICIPATION, createAnticipationScreen({ manager, analytics }));
-  manager.register(SCREENS.PRE_ASK, createPreAskScreen({ manager, analytics }));
 }

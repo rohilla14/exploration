@@ -16,6 +16,20 @@
   --olive: #6b7355;
   --butter: #f9e4b7;
 
+  /* Semantic tokens — put unused palette colors to work */
+  --btn-secondary-bg: var(--cream-warm);
+  --btn-secondary-border: var(--sage);
+  --btn-secondary-text: var(--olive);
+  --highlight-accent: var(--butter);
+  --card-alt-bg: var(--peach);
+
+  /* Type scale */
+  --text-hero: clamp(2rem, 6vw, 3.5rem);
+  --text-title: clamp(1.5rem, 4vw, 2.25rem);
+  --text-subtitle: clamp(1.1rem, 2.5vw, 1.35rem);
+  --text-body: 1rem;
+  --text-caption: 0.85rem;
+
   /* Legacy tokens → photo palette */
   --pink: var(--rose-dusty);
   --pink-deep: var(--rose-deep);

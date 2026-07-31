@@ -34,7 +34,6 @@ export class NavControls {
   update({ screenId, index }) {
     const hideOn =
       screenId === SCREENS.LOADING ||
-      screenId === SCREENS.GREETING ||
       screenId === SCREENS.DATE_PLANNER ||
       screenId === SCREENS.BOUQUET;
     const visible = !hideOn && index >= BACK_VISIBLE_FROM;

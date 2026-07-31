@@ -288,21 +288,32 @@ body {
   box-shadow: 0 8px 24px var(--shadow);
 }
 
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--rose-deep);
+  outline-offset: 3px;
+}
+
 .btn--primary {
   background: linear-gradient(135deg, var(--terracotta), var(--rose-deep));
   color: var(--white);
 }
 
 .btn--secondary {
-  background: var(--white);
-  color: var(--text);
-  border: 2px solid var(--lavender);
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: 2px solid var(--btn-secondary-border);
+  font-weight: 600;
 }
 
 .btn--yes {
   background: linear-gradient(135deg, var(--rose-deep), var(--burgundy));
   color: var(--white);
   font-size: 1.25rem;
+  font-weight: 700;
   padding: 1rem 2.5rem;
   transform-origin: center;
   transition: transform 0.15s ease-out;
@@ -310,9 +321,10 @@ body {
 }
 
 .btn--no {
-  background: var(--white);
-  color: var(--text-light);
-  border: 2px solid var(--lavender);
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: 2px solid var(--btn-secondary-border);
+  font-weight: 600;
   position: absolute;
   transition: left 0.2s ease-out, top 0.2s ease-out, opacity 0.3s, transform 0.3s;
 }
