@@ -1096,6 +1096,81 @@
   margin-top: 1.5rem;
 }
 
+/* Why I Made This */
+.hub-app--why {
+  position: relative;
+  min-height: min(62vh, 520px);
+  border-radius: var(--radius-lg, 24px);
+  overflow: hidden;
+  padding: 2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.why-made__photo-bg {
+  position: absolute;
+  inset: -6%;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px) saturate(1.05);
+  transform: scale(1.1);
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.why-made__photo-bg.photo-slot--empty {
+  opacity: 0;
+}
+
+.why-made__photo-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--cream) 72%, transparent) 0%,
+    color-mix(in srgb, var(--cream-warm, var(--cream)) 55%, transparent) 55%,
+    color-mix(in srgb, var(--cream) 78%, transparent) 100%
+  );
+}
+
+.why-made__content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 34rem;
+}
+
+.why-made__paragraphs {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.why-made__paragraph {
+  margin: 0;
+  font-family: var(--font-accent);
+  font-size: var(--text-subtitle, clamp(1.1rem, 2.5vw, 1.3rem));
+  line-height: 1.75;
+  color: var(--text);
+  text-align: left;
+}
+
+.why-made__cursor {
+  display: inline-block;
+  margin-left: 1px;
+  color: var(--rose-deep, var(--pink-deep));
+  animation: whyMadeBlink 0.85s step-end infinite;
+}
+
+@keyframes whyMadeBlink {
+  50% {
+    opacity: 0;
+  }
+}
+
 @media (max-width: 640px) {
   .hub-grid {
     grid-template-columns: repeat(2, 1fr);

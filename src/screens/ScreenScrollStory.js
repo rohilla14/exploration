@@ -103,17 +103,33 @@ export function createScrollStoryScreen({ manager, analytics }) {
   const photoWrap = document.createElement('div');
   photoWrap.className = 'cinematic-photo-wrap';
 
-  const photo = document.createElement('div');
-  photo.className = 'cinematic-photo cinematic-photo--placeholder';
-  photo.innerHTML = 'Your photo goes here<small>public/assets/photo.jpeg</small>';
+  const cinematicSrcs =
+    CONFIG.cinematicPhotos?.length > 0
+      ? CONFIG.cinematicPhotos
+      : [CONFIG.photos?.cinematic || '/assets/photo.jpeg'];
 
-  const img = new Image();
-  img.src = CONFIG.cinematicPhoto;
-  img.onload = () => {
-    photo.classList.remove('cinematic-photo--placeholder');
-    photo.textContent = '';
-    photo.style.backgroundImage = `url(${img.src})`;
-  };
+  /** @type {HTMLElement[]} */
+  const photoLayers = cinematicSrcs.map((src, i) => {
+    const layer = document.createElement('div');
+    layer.className =
+      'cinematic-photo' + (i === 0 ? ' cinematic-photo--active cinematic-photo--placeholder' : '');
+    if (i === 0) {
+      layer.innerHTML = 'Your photo goes here<small>public/assets/photo.jpeg</small>';
+    }
+
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+      layer.classList.remove('cinematic-photo--placeholder');
+      layer.textContent = '';
+      layer.style.backgroundImage = `url(${src})`;
+    };
+
+    photoWrap.appendChild(layer);
+    return layer;
+  });
+
+  let activePhotoIndex = 0;
 
   const vignette = document.createElement('div');
   vignette.className = 'cinematic-vignette';
@@ -132,7 +148,6 @@ export function createScrollStoryScreen({ manager, analytics }) {
   finale.className = 'cinematic-finale';
   finale.textContent = CONFIG.cinematicFinale;
 
-  photoWrap.appendChild(photo);
   photoWrap.appendChild(vignette);
   sticky.appendChild(photoWrap);
   sticky.appendChild(linesWrap);
@@ -360,6 +375,18 @@ export function createScrollStoryScreen({ manager, analytics }) {
 
   function applyScrollProgress() {
     const p = getCinematicProgress();
+
+    // Cycle cinematic photos evenly across scroll progress (crossfade via CSS)
+    const n = photoLayers.length;
+    if (n > 0) {
+      const nextIndex = Math.min(Math.floor(p * n), n - 1);
+      if (nextIndex !== activePhotoIndex) {
+        activePhotoIndex = nextIndex;
+        photoLayers.forEach((layer, i) => {
+          layer.classList.toggle('cinematic-photo--active', i === activePhotoIndex);
+        });
+      }
+    }
 
     // Cinematic phases (only after greeting section)
     const photoPhase = clamp(p / 0.38);

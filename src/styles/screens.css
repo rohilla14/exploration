@@ -5,9 +5,9 @@
   z-index: 0;
   background-size: cover;
   background-position: center;
-  filter: blur(18px) saturate(1.05);
+  filter: blur(10px) saturate(1.05);
   transform: scale(1.08);
-  opacity: 0.28;
+  opacity: 0.35;
   pointer-events: none;
 }
 
@@ -15,11 +15,15 @@
   opacity: 0;
 }
 
+.screen--loading .screen-atmosphere {
+  z-index: 1;
+}
+
 .screen--loading .screen-card {
   text-align: center;
   max-width: 420px;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .screen--loading .loading__for {

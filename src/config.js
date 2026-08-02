@@ -4,11 +4,13 @@
 //
 // 📷 YOUR PHOTOS (in public/assets/)
 //
-//   photo.jpeg                              → cinematic scroll
-//   IMG_2852.JPG                            → polaroid A
-//   628bf372-9d06-4db2-9acd-14e13021f468.jpg → polaroid B
-//   cacb8ec6-cba6-4214-9f62-0759952ade21.jpg → planner welcome
-//   245eedf8-8997-4501-b6c9-a70cd89b94e1.jpg → celebration
+//   photo.jpeg / cinematic-2.jpg / cinematic-3.jpg → cinematic scroll cycle
+//   loading-bg.jpg                                  → loading backdrop
+//   why-i-made-this.jpg                             → Why I Made This hub app
+//   IMG_2852.JPG                                    → polaroid A
+//   628bf372-9d06-4db2-9acd-14e13021f468.jpg         → polaroid B
+//   cacb8ec6-cba6-4214-9f62-0759952ade21.jpg         → planner welcome
+//   245eedf8-8997-4501-b6c9-a70cd89b94e1.jpg         → celebration
 //
 // ============================================================
 
@@ -20,7 +22,13 @@ export const CONFIG = {
   greetingSoftLine:
     "Hey! I made you a little corner of the internet. Wander around, take your time, keep scrolling.",
 
-  cinematicPhoto: '/assets/photo.jpeg',
+  loadingPhoto: '/assets/loading-bg.jpg',
+
+  cinematicPhotos: [
+    '/assets/photo.jpeg',
+    '/assets/cinematic-2.jpg',
+    '/assets/cinematic-3.jpg',
+  ],
 
   photos: {
     cinematic: '/assets/photo.jpeg',
@@ -323,6 +331,12 @@ export const CONFIG = {
       name: 'Dear Diary',
       description: 'Jot down your thoughts, day by day',
     },
+    {
+      id: 'why-i-made-this',
+      emoji: '💌',
+      name: 'Why I Made This',
+      description: 'The real reason this exists',
+    },
   ],
 
   memoryLaneTabMoments: 'Moments',
@@ -384,4 +398,13 @@ export const CONFIG = {
   diaryAiPromptFallback: 'What made you smile today, even a little?',
 
   thisOrThatReactionLoading: '…',
+
+  whyIMadeThisText: [
+    'I made this because I realized I was always around but never really there.',
+    'I was so focused on what I wanted that I never stopped to understand what mattered to you, or even to me.',
+    "You used to ask me questions — about myself, what I feel, what I want — and I'd go blank. Not because I didn't care. But because I'd never stopped to think about any of it.",
+    "The time we didn't talk — that's when it hit me. I missed this. Not just talking to you, but what talking to you does to me. You're the only person who made me want to actually figure myself out.",
+    'This is me showing up with answers. And with effort. Finally.',
+  ],
+  whyIMadeThisPhoto: '/assets/why-i-made-this.jpg',
 };

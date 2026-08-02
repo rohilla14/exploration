@@ -3,6 +3,7 @@ import { createAskMeAnythingApp } from './apps/AskMeAnything.js';
 import { createOurPlaylistApp } from './apps/OurPlaylist.js';
 import { createMovieNightsApp } from './apps/MovieNights.js';
 import { createDearDiaryApp } from './apps/DearDiary.js';
+import { createWhyIMadeThisApp } from './apps/WhyIMadeThis.js';
 
 /** @typedef {import('../analytics/Analytics.js').Analytics} Analytics */
 
@@ -16,4 +17,5 @@ export const HUB_REGISTRY = [
   { id: 'our-playlist', factory: createOurPlaylistApp },
   { id: 'movie-nights', factory: createMovieNightsApp },
   { id: 'dear-diary', factory: createDearDiaryApp },
+  { id: 'why-i-made-this', factory: createWhyIMadeThisApp },
 ];

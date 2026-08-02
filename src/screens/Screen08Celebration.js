@@ -28,7 +28,7 @@ export function createCelebrationScreen({ manager, analytics, confetti }) {
   const img = new Image();
   img.src =
     CONFIG.photos?.celebration ||
-    CONFIG.cinematicPhoto ||
+    CONFIG.cinematicPhotos?.[0] ||
     CONFIG.photos?.cinematic ||
     '/assets/photo.jpeg';
   img.onload = () => {

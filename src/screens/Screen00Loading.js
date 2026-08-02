@@ -15,12 +15,13 @@ export function createLoadingScreen({ manager, analytics }) {
   const element = document.createElement('section');
   element.className = 'screen screen--loading';
 
-  const atmosphere = createAmbientAtmosphere(element, { intensity: 'loading' });
-
   const photoBg = document.createElement('div');
   photoBg.className = 'loading__photo-bg photo-slot photo-slot--empty';
   photoBg.setAttribute('aria-hidden', 'true');
   element.appendChild(photoBg);
+
+  // Atmosphere sits above the soft photo tease; text/card stays on top of both
+  const atmosphere = createAmbientAtmosphere(element, { intensity: 'loading' });
 
   const inner = document.createElement('div');
   inner.className = 'screen__inner screen-card';
@@ -68,7 +69,7 @@ export function createLoadingScreen({ manager, analytics }) {
     element,
     onEnter() {
       lc.reset();
-      const photoSrc = CONFIG.photos?.polaroidA || CONFIG.photos?.cinematic;
+      const photoSrc = CONFIG.loadingPhoto || CONFIG.photos?.cinematic;
       if (photoSrc) applyCoverBackground(photoBg, photoSrc);
       runTypewriter();
     },
