@@ -32,6 +32,8 @@ export class ScreenManager {
     this.order = [];
     /** @type {string | null} */
     this.currentId = null;
+    /** @type {string[]} Visited screen stack for true back navigation */
+    this.history = [];
     /** @type {Set<(detail: ScreenChangeDetail) => void>} */
     this.listeners = new Set();
     this._initialized = false;
@@ -58,13 +60,20 @@ export class ScreenManager {
     this.container.appendChild(entry.element);
   }
 
-  /** @param {string} id */
-  async goTo(id) {
+  /**
+   * @param {string} id
+   * @param {{ recordHistory?: boolean }} [options]
+   */
+  async goTo(id, { recordHistory = true } = {}) {
     if (!this.screens.has(id)) {
       console.warn(`[ScreenManager] Unknown screen: ${id}`);
       return;
     }
     if (id === this.currentId && this._initialized) return;
+
+    if (recordHistory && this._initialized && this.currentId && this.currentId !== id) {
+      this.history.push(this.currentId);
+    }
 
     const prev = this._initialized && this.currentId ? this.screens.get(this.currentId) : null;
     const next = this.screens.get(id);
@@ -109,11 +118,10 @@ export class ScreenManager {
     return this.goTo(this.order[idx + 1]);
   }
 
-  /** Go to the previous screen. No-op on the first navigable step. */
+  /** Go to the previously visited screen. No-op when history is empty. */
   goBack() {
-    const idx = this.order.indexOf(this.currentId ?? '');
-    if (idx <= 0) return Promise.resolve();
-    return this.goTo(this.order[idx - 1]);
+    if (this.history.length === 0) return Promise.resolve();
+    return this.goTo(this.history.pop(), { recordHistory: false });
   }
 
   get count() {

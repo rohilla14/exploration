@@ -1,44 +1,41 @@
 import { flowerMarkup, vaseMarkup } from './bouquetFlowers.js';
 
-// ── Bouquet slots — x is % of arrangement half-width ──
+/** Fan slots — denser center cluster so a few stems already look like a bouquet. */
 const BOUQUET_SLOTS = [
-  { id: 'center', x: 0, rot: 0, scale: 1.05, z: 3 },
-  { id: 'left-1', x: -20, rot: -14, scale: 1.0, z: 4 },
-  { id: 'right-1', x: 20, rot: 14, scale: 1.0, z: 4 },
-  { id: 'left-2', x: -38, rot: -24, scale: 0.96, z: 6 },
-  { id: 'right-2', x: 38, rot: 24, scale: 0.96, z: 6 },
-  { id: 'left-3', x: -55, rot: -32, scale: 0.92, z: 7 },
-  { id: 'right-3', x: 55, rot: 32, scale: 0.92, z: 7 },
-  { id: 'back-left', x: -12, rot: -8, scale: 1.02, z: 2 },
-  { id: 'back-right', x: 12, rot: 8, scale: 1.02, z: 2 },
-  { id: 'front', x: 0, rot: 3, scale: 0.98, z: 5 },
+  { id: 'center', x: 0, rot: -2, scale: 1.08, z: 5 },
+  { id: 'left-1', x: -16, rot: -12, scale: 1.0, z: 6 },
+  { id: 'right-1', x: 16, rot: 12, scale: 1.0, z: 6 },
+  { id: 'left-2', x: -28, rot: -20, scale: 0.96, z: 4 },
+  { id: 'right-2', x: 28, rot: 20, scale: 0.96, z: 4 },
+  { id: 'back-l', x: -10, rot: -8, scale: 1.04, z: 2 },
+  { id: 'back-r', x: 10, rot: 8, scale: 1.04, z: 2 },
+  { id: 'left-3', x: -38, rot: -28, scale: 0.9, z: 7 },
+  { id: 'right-3', x: 38, rot: 28, scale: 0.9, z: 7 },
+  { id: 'front', x: 4, rot: 4, scale: 0.94, z: 8 },
 ];
 
-const JITTER_X = 3;
-const JITTER_ROT = 3;
-const SETTLE_MS = 420;
+const JITTER_X = 2.5;
+const JITTER_ROT = 2.5;
+const SETTLE_MS = 380;
 
+/** Real stems only — hue-rotated “variants” looked cheap in the tray. */
 const FLOWER_TYPES = [
-  { id: 'lotus', name: 'Lotus', tag: 'fav ✨' },
+  { id: 'lotus', name: 'Lotus', tag: 'fav' },
   { id: 'rose', name: 'Rose' },
-  { id: 'rose-blush', name: 'Blush rose' },
-  { id: 'daisy', name: 'Daisy' },
-  { id: 'daisy-butter', name: 'Butter daisy' },
-  { id: 'tulip', name: 'Tulip' },
-  { id: 'tulip-lilac', name: 'Lilac tulip' },
   { id: 'peony', name: 'Peony' },
-  { id: 'sprig', name: 'Filler' },
+  { id: 'tulip', name: 'Tulip' },
+  { id: 'daisy', name: 'Daisy' },
+  { id: 'sprig', name: 'Greens' },
 ];
 
 /**
- * Cycle through fan slots so every flower lands in a distinct position.
- * @param {number} index — 0-based placement count
+ * @param {number} index
  * @param {number} clientX
  * @param {DOMRect} pileRect
  */
 function pickSlot(index, clientX, pileRect) {
   const centerX = pileRect.left + pileRect.width / 2;
-  const dropBias = ((clientX - centerX) / pileRect.width) * 100 * 0.12;
+  const dropBias = ((clientX - centerX) / pileRect.width) * 100 * 0.1;
   const slot = BOUQUET_SLOTS[index % BOUQUET_SLOTS.length];
 
   return {
@@ -49,27 +46,32 @@ function pickSlot(index, clientX, pileRect) {
 }
 
 /**
- * Self-contained drag-flowers-into-vase component.
+ * Self-contained arrange-flowers-into-vase component.
+ * Supports drag-and-drop and tap-to-add (better on touch).
  */
 export function createBouquetBuilder(options = {}) {
   const {
     title = 'Build your bouquet',
-    hint = 'Drag flowers into the vase',
+    hint = 'Tap a stem or drag it into the vase',
     milestoneCount = 5,
     milestoneMsg = "It's already beautiful. Keep going.",
     vaseLabel = '',
+    continueLabel = 'These are for you →',
+    skipLabel = 'Skip for now',
     onFlowerPlaced,
     onMilestone,
+    onContinue,
+    onSkip,
   } = options;
 
   const root = document.createElement('div');
   root.className = 'bb';
+  root.dataset.count = '0';
   root.innerHTML = `
     <header class="bb-header">
-      <p class="bb-header__eyebrow">Fresh picks</p>
+      <p class="bb-header__eyebrow">A little something</p>
       <h2 class="bb-header__title">${title}</h2>
       <p class="bb-header__hint">${hint}</p>
-      <button type="button" class="bb-clear">Start over</button>
     </header>
     <div class="bb-stage">
       <div class="bb-surface">
@@ -87,10 +89,20 @@ export function createBouquetBuilder(options = {}) {
       </div>
     </div>
     <div class="bb-tray">
-      <p class="bb-tray__label">Choose your stems</p>
+      <div class="bb-tray__top">
+        <p class="bb-tray__label">Pick a stem</p>
+        <button type="button" class="bb-clear" hidden>Clear</button>
+      </div>
       <div class="bb-tray__row"></div>
     </div>
     <p class="bb-milestone" hidden></p>
+    <footer class="bb-footer">
+      <p class="bb-footer__count" data-role="count">Empty vase — add a flower to begin</p>
+      <div class="bb-footer__actions">
+        <button type="button" class="bb-skip">${skipLabel}</button>
+        <button type="button" class="btn btn--primary bb-continue">${continueLabel}</button>
+      </div>
+    </footer>
   `;
 
   const dropZone = root.querySelector('.bb-drop-zone');
@@ -98,24 +110,51 @@ export function createBouquetBuilder(options = {}) {
   const trayRow = root.querySelector('.bb-tray__row');
   const clearBtn = root.querySelector('.bb-clear');
   const milestoneEl = root.querySelector('.bb-milestone');
+  const countEl = root.querySelector('[data-role="count"]');
+  const continueBtn = root.querySelector('.bb-continue');
+  const skipBtn = root.querySelector('.bb-skip');
 
   let placedCount = 0;
   let milestoneShown = false;
   let drag = null;
+  /** @type {{ type: string, x: number, y: number, t: number } | null} */
+  let pointerDown = null;
+  /** @type {HTMLElement[]} */
+  const stems = [];
   const unbind = [];
+  const TAP_MS = 320;
+  const TAP_SLOP = 12;
+  const REMOVE_MS = 280;
 
-  function bind(el, type, fn) {
-    el.addEventListener(type, fn);
-    unbind.push(() => el.removeEventListener(type, fn));
+  function bind(el, type, fn, opts) {
+    el.addEventListener(type, fn, opts);
+    unbind.push(() => el.removeEventListener(type, fn, opts));
   }
 
   function isInDropZone(clientX, clientY) {
     const r = dropZone.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    const dx = (clientX - cx) / (r.width / 2);
-    const dy = (clientY - cy) / (r.height / 2);
-    return dx * dx + dy * dy <= 1.25;
+    const padX = r.width * 0.15;
+    const padY = r.height * 0.2;
+    return (
+      clientX >= r.left - padX &&
+      clientX <= r.right + padX &&
+      clientY >= r.top - padY &&
+      clientY <= r.bottom + padY
+    );
+  }
+
+  function updateChrome() {
+    root.classList.toggle('bb--has-flowers', placedCount > 0);
+    root.dataset.count = String(placedCount);
+    clearBtn.hidden = placedCount === 0;
+
+    if (placedCount === 0) {
+      countEl.textContent = 'Empty vase — add a flower to begin';
+    } else if (placedCount === 1) {
+      countEl.textContent = '1 stem in the vase';
+    } else {
+      countEl.textContent = `${placedCount} stems in the vase`;
+    }
   }
 
   function createTrayFlower(type) {
@@ -124,13 +163,13 @@ export function createBouquetBuilder(options = {}) {
     btn.type = 'button';
     btn.className = 'bb-tray__flower';
     btn.dataset.flowerType = type;
-    btn.setAttribute('aria-label', `Drag ${meta?.name || type}`);
+    btn.setAttribute('aria-label', `Add ${meta?.name || type}`);
     btn.innerHTML = `
       ${flowerMarkup(type, 'bb-flower-art bb-flower-art--tray')}
       <span class="bb-tray__name">${meta?.name || type}</span>
       ${meta?.tag ? `<span class="bb-tray__tag">${meta.tag}</span>` : ''}
     `;
-    bind(btn, 'pointerdown', (e) => startDrag(e, type, btn));
+    bind(btn, 'pointerdown', (e) => onTrayPointerDown(e, type, btn));
     return btn;
   }
 
@@ -139,16 +178,18 @@ export function createBouquetBuilder(options = {}) {
     FLOWER_TYPES.forEach((f) => trayRow.appendChild(createTrayFlower(f.id)));
   }
 
-  function startDrag(e, type, source) {
+  function onTrayPointerDown(e, type, source) {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     e.preventDefault();
     source.setPointerCapture(e.pointerId);
+    pointerDown = { type, x: e.clientX, y: e.clientY, t: performance.now() };
 
     const r = source.getBoundingClientRect();
     const ghost = document.createElement('div');
     ghost.className = 'bb-ghost';
+    ghost.hidden = true;
     ghost.innerHTML = flowerMarkup(type, 'bb-flower-art bb-flower-art--ghost');
-    ghost.style.width = `${r.width}px`;
+    ghost.style.width = `${Math.max(r.width, 72)}px`;
     document.body.appendChild(ghost);
 
     drag = {
@@ -158,23 +199,31 @@ export function createBouquetBuilder(options = {}) {
       pointerId: e.pointerId,
       offsetX: e.clientX - r.left - r.width / 2,
       offsetY: e.clientY - r.top - r.height / 2,
+      moved: false,
     };
-
-    source.classList.add('bb-tray__flower--dragging');
-    moveGhost(e.clientX, e.clientY);
-    dropZone.classList.remove('bb-drop-zone--active');
-    root.classList.remove('bb--drop-hover');
-    document.body.classList.add('bb-dragging');
   }
 
   function moveGhost(x, y) {
     if (!drag?.ghost) return;
+    drag.ghost.hidden = false;
     drag.ghost.style.left = `${x - drag.offsetX}px`;
     drag.ghost.style.top = `${y - drag.offsetY}px`;
   }
 
   function onPointerMove(e) {
     if (!drag || e.pointerId !== drag.pointerId) return;
+
+    const dx = e.clientX - (pointerDown?.x ?? e.clientX);
+    const dy = e.clientY - (pointerDown?.y ?? e.clientY);
+    if (!drag.moved && Math.hypot(dx, dy) > TAP_SLOP) {
+      drag.moved = true;
+      drag.source.classList.add('bb-tray__flower--dragging');
+      document.body.classList.add('bb-dragging');
+      moveGhost(e.clientX, e.clientY);
+    }
+
+    if (!drag.moved) return;
+
     moveGhost(e.clientX, e.clientY);
     const over = isInDropZone(e.clientX, e.clientY);
     dropZone.classList.toggle('bb-drop-zone--active', over);
@@ -184,8 +233,9 @@ export function createBouquetBuilder(options = {}) {
   function endDrag(e) {
     if (!drag || e.pointerId !== drag.pointerId) return;
 
-    const { type, ghost, source } = drag;
-    const valid = isInDropZone(e.clientX, e.clientY);
+    const { type, ghost, source, moved } = drag;
+    const elapsed = performance.now() - (pointerDown?.t ?? 0);
+    const isTap = !moved && elapsed <= TAP_MS;
 
     try {
       source.releasePointerCapture(e.pointerId);
@@ -198,37 +248,45 @@ export function createBouquetBuilder(options = {}) {
     root.classList.remove('bb--drop-hover');
     document.body.classList.remove('bb-dragging');
 
-    if (valid) {
+    if (isTap) {
+      ghost.remove();
+      placeFlower(type);
+    } else if (moved && isInDropZone(e.clientX, e.clientY)) {
       ghost.remove();
       placeFlower(type, e.clientX, e.clientY);
-    } else {
+    } else if (moved) {
       returnGhostToTray();
+    } else {
+      ghost.remove();
     }
 
     drag = null;
+    pointerDown = null;
   }
 
   function returnGhostToTray() {
     if (!drag) return;
     const { ghost, source } = drag;
     const trayRect = source.getBoundingClientRect();
+    const width = parseFloat(ghost.style.width) || 72;
     ghost.style.transition = `left ${SETTLE_MS}ms var(--bb-ease-out), top ${SETTLE_MS}ms var(--bb-ease-out), opacity ${SETTLE_MS}ms ease`;
-    ghost.style.left = `${trayRect.left + trayRect.width / 2 - parseFloat(ghost.style.width) / 2}px`;
+    ghost.style.left = `${trayRect.left + trayRect.width / 2 - width / 2}px`;
     ghost.style.top = `${trayRect.top}px`;
     ghost.style.opacity = '0';
     window.setTimeout(() => ghost.remove(), SETTLE_MS);
   }
 
   function updateBouquetScale(count) {
-    const bloom = count <= 1 ? 1 : Math.max(0.55, 1 - (count - 1) * 0.068);
-    const spread = count <= 1 ? 1 : Math.max(0.52, 1 - (count - 1) * 0.058);
+    // Keep blooms readable — only a gentle tuck as the vase fills.
+    const bloom = count <= 1 ? 1 : Math.max(0.82, 1 - (count - 1) * 0.028);
+    const spread = count <= 1 ? 1 : Math.max(0.78, 1 - (count - 1) * 0.022);
     root.style.setProperty('--bb-bloom-scale', String(bloom));
     root.style.setProperty('--bb-spread', String(spread));
 
-    const w = arrangement.clientWidth;
+    const w = arrangement.clientWidth || 1;
     arrangement.querySelectorAll('.bb-stem').forEach((stem) => {
       const baseX = Number(stem.dataset.baseX) || 0;
-      stem.style.setProperty('--px', `${(baseX / 100) * w * 0.46 * spread}px`);
+      stem.style.setProperty('--px', `${(baseX / 100) * w * 0.42 * spread}px`);
     });
   }
 
@@ -236,11 +294,13 @@ export function createBouquetBuilder(options = {}) {
     const index = placedCount;
     placedCount += 1;
     const pileRect = arrangement.getBoundingClientRect();
-    const slot = pickSlot(index, clientX, pileRect);
+    const cx = clientX ?? pileRect.left + pileRect.width / 2;
+    const cy = clientY ?? pileRect.top + pileRect.height * 0.6;
+    const slot = pickSlot(index, cx, pileRect);
 
     const baseX = slot.x + (Math.random() - 0.5) * JITTER_X;
     const rot = slot.rot + (Math.random() - 0.5) * JITTER_ROT;
-    const scale = slot.scale + (Math.random() - 0.5) * 0.03;
+    const scale = slot.scale + (Math.random() - 0.5) * 0.04;
 
     const el = document.createElement('div');
     el.className = 'bb-stem';
@@ -249,13 +309,27 @@ export function createBouquetBuilder(options = {}) {
     el.dataset.baseX = String(baseX);
     el.style.setProperty('--prot', `${rot}deg`);
     el.style.setProperty('--pscale', String(scale));
+    el.style.setProperty('--sway-delay', `${(index % 5) * 0.35}s`);
     el.style.zIndex = String(slot.z);
-    el.innerHTML = flowerMarkup(type, 'bb-flower-art bb-flower-art--placed');
+    el.innerHTML = `
+      ${flowerMarkup(type, 'bb-flower-art bb-flower-art--placed')}
+      <button type="button" class="bb-stem__remove" aria-label="Remove flower">×</button>
+    `;
+
+    const removeBtn = el.querySelector('.bb-stem__remove');
+    removeBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      removeStem(el);
+    });
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.bb-stem__remove')) return;
+      removeStem(el);
+    });
 
     arrangement.appendChild(el);
-    root.classList.toggle('bb--has-flowers', placedCount > 0);
-    root.dataset.count = String(placedCount);
+    stems.push(el);
     updateBouquetScale(placedCount);
+    updateChrome();
 
     onFlowerPlaced?.({ flowerId: type, count: placedCount });
 
@@ -267,23 +341,50 @@ export function createBouquetBuilder(options = {}) {
     }
   }
 
+  function removeStem(el) {
+    if (!el?.isConnected || el.classList.contains('bb-stem--removing')) return;
+
+    const idx = stems.indexOf(el);
+    if (idx === -1) return;
+
+    el.classList.add('bb-stem--removing');
+    window.setTimeout(() => {
+      const i = stems.indexOf(el);
+      if (i !== -1) stems.splice(i, 1);
+      el.remove();
+      placedCount = stems.length;
+      if (placedCount < milestoneCount) {
+        milestoneShown = false;
+        milestoneEl.hidden = true;
+        milestoneEl.textContent = '';
+      }
+      updateBouquetScale(placedCount);
+      updateChrome();
+    }, REMOVE_MS);
+  }
+
   function clearVase() {
     placedCount = 0;
     milestoneShown = false;
+    stems.length = 0;
     arrangement.innerHTML = '';
     milestoneEl.hidden = true;
     milestoneEl.textContent = '';
-    root.classList.remove('bb--has-flowers');
-    root.dataset.count = '0';
     updateBouquetScale(0);
+    updateChrome();
   }
 
   bind(document, 'pointermove', onPointerMove);
   bind(document, 'pointerup', endDrag);
   bind(document, 'pointercancel', endDrag);
   bind(clearBtn, 'click', clearVase);
+  bind(continueBtn, 'click', () => {
+    onContinue?.({ count: placedCount });
+  });
+  bind(skipBtn, 'click', () => onSkip?.({ count: placedCount }));
   buildTray();
   updateBouquetScale(0);
+  updateChrome();
 
   const resizeObs = new ResizeObserver(() => {
     if (placedCount > 0) updateBouquetScale(placedCount);
@@ -296,6 +397,7 @@ export function createBouquetBuilder(options = {}) {
     reset() {
       drag?.ghost?.remove();
       drag = null;
+      pointerDown = null;
       document.body.classList.remove('bb-dragging');
       clearVase();
       buildTray();
@@ -303,6 +405,7 @@ export function createBouquetBuilder(options = {}) {
     destroy() {
       drag?.ghost?.remove();
       drag = null;
+      pointerDown = null;
       unbind.forEach((fn) => fn());
       root.remove();
     },

@@ -17,6 +17,7 @@ import { moviesRouter } from './routes/movies.js';
 import { diaryRouter } from './routes/diary.js';
 import { musicRouter } from './routes/music.js';
 import { aiRouter } from './routes/ai.js';
+import { horoscopeRouter } from './routes/horoscope.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: join(__dirname, '.env') });
@@ -145,6 +146,7 @@ app.use(
 );
 
 app.use('/api/ai', aiRateLimit, aiRouter);
+app.use('/api/horoscope', aiRateLimit, horoscopeRouter);
 
 if (existsSync(distPath)) {
   // Gate admin HTML before static so /admin.html is not open.

@@ -4,11 +4,14 @@ import { EVENTS } from '../constants/eventTypes.js';
 import { createLifecycle } from '../utils/lifecycle.js';
 import { GAME_REGISTRY } from '../games/registry.js';
 import { getDoneGames, markGameDone } from '../utils/gameProgress.js';
+import { createAmbientAtmosphere } from '../core/AmbientAtmosphere.js';
 import { createMemoryLaneApp } from '../hub/apps/MemoryLane.js';
 import { createAskMeAnythingApp } from '../hub/apps/AskMeAnything.js';
 import { createOurPlaylistApp } from '../hub/apps/OurPlaylist.js';
 import { createMovieNightsApp } from '../hub/apps/MovieNights.js';
 import { createDearDiaryApp } from '../hub/apps/DearDiary.js';
+import { createPhotoWallApp } from '../hub/apps/PhotoWall.js';
+import { createHoroscopeApp } from '../hub/apps/Horoscope.js';
 import Lenis from 'lenis';
 
 const GLITCH_CHARS =
@@ -29,6 +32,8 @@ export function createScrollStoryScreen({ manager, analytics }) {
 
   const element = document.createElement('section');
   element.className = 'screen screen--cinematic';
+
+  const atmosphere = createAmbientAtmosphere(element, { intensity: 'story' });
 
   const scrollRoot = document.createElement('div');
   scrollRoot.className = 'cinematic-scroll';
@@ -64,10 +69,10 @@ export function createScrollStoryScreen({ manager, analytics }) {
   greetingInner.appendChild(scrollHint);
   greetingSection.appendChild(greetingInner);
 
-  function addPolaroid(className, src, caption) {
+  function addPolaroid(className, src) {
     const wrap = document.createElement('div');
     wrap.className = `polaroid ${className}`;
-    wrap.innerHTML = `<img alt="" /><span class="polaroid__caption">${caption}</span>`;
+    wrap.innerHTML = `<img alt="" />`;
     const img = wrap.querySelector('img');
     const probe = new Image();
     probe.onload = () => {
@@ -79,18 +84,10 @@ export function createScrollStoryScreen({ manager, analytics }) {
   }
 
   if (CONFIG.photos?.polaroidA) {
-    addPolaroid(
-      'polaroid--a',
-      CONFIG.photos.polaroidA,
-      CONFIG.photos.polaroidCaptions?.a ?? 'us',
-    );
+    addPolaroid('polaroid--a', CONFIG.photos.polaroidA);
   }
   if (CONFIG.photos?.polaroidB) {
-    addPolaroid(
-      'polaroid--b',
-      CONFIG.photos.polaroidB,
-      CONFIG.photos.polaroidCaptions?.b ?? 'that day',
-    );
+    addPolaroid('polaroid--b', CONFIG.photos.polaroidB);
   }
 
   // —— Cinematic chapter ——
@@ -103,33 +100,19 @@ export function createScrollStoryScreen({ manager, analytics }) {
   const photoWrap = document.createElement('div');
   photoWrap.className = 'cinematic-photo-wrap';
 
-  const cinematicSrcs =
-    CONFIG.cinematicPhotos?.length > 0
-      ? CONFIG.cinematicPhotos
-      : [CONFIG.photos?.cinematic || '/assets/photo.jpeg'];
+  const cinematicSrc = CONFIG.photos?.cinematic || '/assets/photo.jpeg';
+  const photoLayer = document.createElement('div');
+  photoLayer.className = 'cinematic-photo cinematic-photo--active cinematic-photo--placeholder';
+  photoLayer.innerHTML = 'Your photo goes here<small>public/assets/photo.jpeg</small>';
 
-  /** @type {HTMLElement[]} */
-  const photoLayers = cinematicSrcs.map((src, i) => {
-    const layer = document.createElement('div');
-    layer.className =
-      'cinematic-photo' + (i === 0 ? ' cinematic-photo--active cinematic-photo--placeholder' : '');
-    if (i === 0) {
-      layer.innerHTML = 'Your photo goes here<small>public/assets/photo.jpeg</small>';
-    }
-
-    const img = new Image();
-    img.src = src;
-    img.onload = () => {
-      layer.classList.remove('cinematic-photo--placeholder');
-      layer.textContent = '';
-      layer.style.backgroundImage = `url(${src})`;
-    };
-
-    photoWrap.appendChild(layer);
-    return layer;
-  });
-
-  let activePhotoIndex = 0;
+  const cinematicImg = new Image();
+  cinematicImg.src = cinematicSrc;
+  cinematicImg.onload = () => {
+    photoLayer.classList.remove('cinematic-photo--placeholder');
+    photoLayer.textContent = '';
+    photoLayer.style.backgroundImage = `url(${cinematicSrc})`;
+  };
+  photoWrap.appendChild(photoLayer);
 
   const vignette = document.createElement('div');
   vignette.className = 'cinematic-vignette';
@@ -168,11 +151,21 @@ export function createScrollStoryScreen({ manager, analytics }) {
   const hubGrid = document.createElement('div');
   hubGrid.className = 'story-hub__grid';
 
-  CONFIG.hubFeatures.forEach((feature) => {
+  const CARD_ACCENTS = [
+    'var(--peach)',
+    'var(--sky-soft)',
+    'var(--rose-dusty)',
+    'var(--sage)',
+    'var(--butter)',
+    'var(--cream-warm)',
+  ];
+
+  CONFIG.hubFeatures.forEach((feature, index) => {
     const card = document.createElement('button');
     card.type = 'button';
     card.className = 'story-hub__card screen-card';
     card.dataset.featureId = feature.id;
+    card.style.setProperty('--card-accent', CARD_ACCENTS[index % CARD_ACCENTS.length]);
     card.innerHTML = `
       <span class="story-hub__card-icon">${feature.icon}</span>
       <h3 class="story-hub__card-title">${feature.title}</h3>
@@ -329,6 +322,8 @@ export function createScrollStoryScreen({ manager, analytics }) {
 
     const appFactories = {
       notes: createMemoryLaneApp,
+      photos: createPhotoWallApp,
+      horoscope: createHoroscopeApp,
       questions: createAskMeAnythingApp,
       playlist: createOurPlaylistApp,
       movies: createMovieNightsApp,
@@ -376,19 +371,7 @@ export function createScrollStoryScreen({ manager, analytics }) {
   function applyScrollProgress() {
     const p = getCinematicProgress();
 
-    // Cycle cinematic photos evenly across scroll progress (crossfade via CSS)
-    const n = photoLayers.length;
-    if (n > 0) {
-      const nextIndex = Math.min(Math.floor(p * n), n - 1);
-      if (nextIndex !== activePhotoIndex) {
-        activePhotoIndex = nextIndex;
-        photoLayers.forEach((layer, i) => {
-          layer.classList.toggle('cinematic-photo--active', i === activePhotoIndex);
-        });
-      }
-    }
-
-    // Cinematic phases (only after greeting section)
+    // Single cinematic photo — scale/parallax as text passes over it
     const photoPhase = clamp(p / 0.38);
     const scale = lerp(0.22, 1.08, photoPhase);
     const photoOpacity = clamp(photoPhase * 1.4);

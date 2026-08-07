@@ -113,6 +113,13 @@ db.exec(`
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS horoscopes (
+    date TEXT PRIMARY KEY,
+    personal TEXT NOT NULL,
+    together TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE INDEX IF NOT EXISTS idx_events_session ON events(session_id);
   CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
   CREATE INDEX IF NOT EXISTS idx_events_screen ON events(screen_id);

@@ -119,7 +119,6 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
           <button type="button" class="btn btn--primary planner-board__stamp" hidden>${CONFIG.plannerConfirmBtn}</button>
           <div class="planner-board__reveal">
             <p class="planner-board__reveal-text">${CONFIG.plannerDateReveal}</p>
-            <button type="button" class="btn btn--primary planner-board__flowers">${CONFIG.plannerFlowersCta}</button>
           </div>
         </div>
       </aside>
@@ -151,7 +150,6 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
   const board = element.querySelector('.planner-board');
   const stampBtn = element.querySelector('.planner-board__stamp');
   const revealEl = element.querySelector('.planner-board__reveal');
-  const flowersBtn = element.querySelector('.planner-board__flowers');
 
   WEEKDAYS.forEach((d) => {
     const span = document.createElement('span');
@@ -875,10 +873,10 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
     sessionStorage.setItem('exploration.datePlan', JSON.stringify(getPayload()));
     analytics.track(EVENTS.MANUAL_CONTINUE, {
       from: SCREENS.DATE_PLANNER,
-      to: SCREENS.CELEBRATION,
+      to: SCREENS.BOUQUET,
       reply: lockInInput.value.trim(),
     });
-    manager.goTo(SCREENS.CELEBRATION);
+    manager.goTo(SCREENS.BOUQUET);
   }
 
   async function stampDate() {
@@ -933,11 +931,6 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
     if (e.key === 'Enter') submitLockIn();
     if (e.key === 'Escape') closeLockIn();
   });
-  lc.bindListener(flowersBtn, 'click', () => {
-    analytics.track(EVENTS.MANUAL_CONTINUE, { from: SCREENS.DATE_PLANNER, to: SCREENS.BOUQUET });
-    manager.goTo(SCREENS.BOUQUET);
-  });
-
   lc.bindListener(document, 'pointermove', onPointerMove);
   lc.bindListener(document, 'pointerup', onPointerUp);
   lc.bindListener(document, 'pointercancel', onPointerUp);

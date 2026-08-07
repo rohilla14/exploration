@@ -4,6 +4,8 @@ import { createOurPlaylistApp } from './apps/OurPlaylist.js';
 import { createMovieNightsApp } from './apps/MovieNights.js';
 import { createDearDiaryApp } from './apps/DearDiary.js';
 import { createWhyIMadeThisApp } from './apps/WhyIMadeThis.js';
+import { createPhotoWallApp } from './apps/PhotoWall.js';
+import { createHoroscopeApp } from './apps/Horoscope.js';
 
 /** @typedef {import('../analytics/Analytics.js').Analytics} Analytics */
 
@@ -13,6 +15,8 @@ import { createWhyIMadeThisApp } from './apps/WhyIMadeThis.js';
  */
 export const HUB_REGISTRY = [
   { id: 'memory-lane', factory: createMemoryLaneApp },
+  { id: 'photos', factory: createPhotoWallApp },
+  { id: 'horoscope', factory: createHoroscopeApp },
   { id: 'ask-me-anything', factory: createAskMeAnythingApp },
   { id: 'our-playlist', factory: createOurPlaylistApp },
   { id: 'movie-nights', factory: createMovieNightsApp },

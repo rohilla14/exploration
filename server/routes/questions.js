@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db.js';
+import { isAdminAuthenticated } from '../adminAuth.js';
 
 export const questionsRouter = Router();
 
@@ -17,8 +18,14 @@ function rowsWithAnswers() {
     .all();
 }
 
-questionsRouter.get('/', (_req, res) => {
-  res.json(rowsWithAnswers());
+/** Public list redacts my_answer until she has answered (spoilers). Admin sees all. */
+questionsRouter.get('/', (req, res) => {
+  const admin = isAdminAuthenticated(req);
+  const rows = rowsWithAnswers().map((row) => {
+    if (admin || row.her_answer) return row;
+    return { ...row, my_answer: null };
+  });
+  res.json(rows);
 });
 
 questionsRouter.post('/', (req, res) => {

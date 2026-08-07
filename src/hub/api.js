@@ -2,10 +2,12 @@ const API = '/api';
 
 async function request(path, options = {}) {
   const hasBody = options.body !== undefined;
+  const { signal, ...rest } = options;
   const res = await fetch(`${API}${path}`, {
-    ...options,
-    headers: hasBody ? { 'Content-Type': 'application/json', ...options.headers } : options.headers,
-    body: hasBody ? JSON.stringify(options.body) : undefined,
+    ...rest,
+    signal,
+    headers: hasBody ? { 'Content-Type': 'application/json', ...rest.headers } : rest.headers,
+    body: hasBody ? JSON.stringify(rest.body) : undefined,
   });
 
   if (!res.ok) {
@@ -85,5 +87,9 @@ export const hubApi = {
   },
   aiThisOrThatReaction(payload) {
     return request('/ai/this-or-that-reaction', { method: 'POST', body: payload });
+  },
+
+  getHoroscope(options = {}) {
+    return request('/horoscope', options);
   },
 };

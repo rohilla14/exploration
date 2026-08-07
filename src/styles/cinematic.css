@@ -276,8 +276,10 @@
 .story-hub__card {
   padding: 1.35rem 1.15rem;
   transition:
-    transform 0.3s var(--ease-spring),
-    box-shadow 0.3s ease;
+    transform var(--transition-bounce),
+    box-shadow 0.35s ease,
+    background 0.35s ease,
+    border-color 0.35s ease;
   border: 1px solid rgba(255, 255, 255, 0.65);
   cursor: pointer;
   text-align: left;
@@ -289,12 +291,21 @@
   perspective: 800px;
   --tilt-x: 0deg;
   --tilt-y: 0deg;
+  --card-accent: var(--peach);
 }
 
-.story-hub__card:hover,
-.story-hub__card--tilting {
-  transform: translateY(-6px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
-  box-shadow: 0 14px 36px rgba(122, 59, 69, 0.16), var(--glow-purple);
+@media (hover: hover) and (pointer: fine) {
+  .story-hub__card:hover,
+  .story-hub__card--tilting {
+    transform: translateY(-6px) scale(1.06) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+    background: color-mix(in srgb, var(--card-accent) 55%, var(--glass));
+    border-color: color-mix(in srgb, var(--card-accent) 40%, transparent);
+    box-shadow: 0 16px 40px rgba(122, 59, 69, 0.18), var(--glow-warm);
+  }
+
+  .story-hub__card:hover .story-hub__card-icon {
+    transform: translateY(-3px) scale(1.15) rotate(-6deg);
+  }
 }
 
 .story-hub__card-icon {
@@ -303,10 +314,6 @@
   margin-bottom: 0.65rem;
   transform-origin: center bottom;
   transition: transform 0.35s var(--ease-spring);
-}
-
-.story-hub__card:hover .story-hub__card-icon {
-  transform: translateY(-3px) scale(1.12) rotate(-6deg);
 }
 
 .story-hub__card-title {

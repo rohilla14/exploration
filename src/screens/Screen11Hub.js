@@ -100,7 +100,16 @@ export function createHubScreen({ analytics }) {
     grid.innerHTML = '';
     const newFlags = await fetchNewFlags();
 
-    CONFIG.hubApps.forEach((meta) => {
+    const CARD_ACCENTS = [
+      'var(--peach)',
+      'var(--sky-soft)',
+      'var(--rose-dusty)',
+      'var(--sage)',
+      'var(--butter)',
+      'var(--cream-warm)',
+    ];
+
+    CONFIG.hubApps.forEach((meta, index) => {
       const entry = HUB_REGISTRY.find((r) => r.id === meta.id);
       if (!entry) return;
 
@@ -108,6 +117,7 @@ export function createHubScreen({ analytics }) {
       card.type = 'button';
       card.className = 'hub-card';
       card.dataset.appId = meta.id;
+      card.style.setProperty('--card-accent', CARD_ACCENTS[index % CARD_ACCENTS.length]);
       card.innerHTML = `
         ${newFlags[meta.id] ? '<span class="hub-card__badge" aria-label="New content"></span>' : ''}
         <span class="hub-card__emoji">${meta.emoji}</span>

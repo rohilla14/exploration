@@ -4,13 +4,12 @@
 //
 // 📷 YOUR PHOTOS (in public/assets/)
 //
-//   photo.jpeg / cinematic-2.jpg / cinematic-3.jpg → cinematic scroll cycle
+//   photo.jpeg                                      → cinematic scroll + photos wall
+//   cinematic-2.jpg / cinematic-3.jpg               → greeting polaroids
 //   loading-bg.jpg                                  → loading backdrop
 //   why-i-made-this.jpg                             → Why I Made This hub app
-//   IMG_2852.JPG                                    → polaroid A
-//   628bf372-9d06-4db2-9acd-14e13021f468.jpg         → polaroid B
-//   cacb8ec6-cba6-4214-9f62-0759952ade21.jpg         → planner welcome
-//   245eedf8-8997-4501-b6c9-a70cd89b94e1.jpg         → celebration
+//   cacb8ec6-…jpg                                   → planner welcome
+//   245eedf8-…jpg                                   → celebration
 //
 // ============================================================
 
@@ -19,26 +18,19 @@ export const CONFIG = {
 
   loadingText: 'Psst… unwrapping something for you.',
 
-  greetingSoftLine:
-    "Hey! I made you a little corner of the internet. Wander around, take your time, keep scrolling.",
-
   loadingPhoto: '/assets/loading-bg.jpg',
-
-  cinematicPhotos: [
-    '/assets/photo.jpeg',
-    '/assets/cinematic-2.jpg',
-    '/assets/cinematic-3.jpg',
-  ],
 
   photos: {
     cinematic: '/assets/photo.jpeg',
-    polaroidA: '/assets/IMG_2852.JPG',
-    polaroidB: '/assets/628bf372-9d06-4db2-9acd-14e13021f468.jpg',
+    polaroidA: '/assets/cinematic-2.jpg',
+    polaroidB: '/assets/cinematic-3.jpg',
     plannerAccent: '/assets/cacb8ec6-cba6-4214-9f62-0759952ade21.jpg',
     plannerWelcome: '/assets/cacb8ec6-cba6-4214-9f62-0759952ade21.jpg',
     celebration: '/assets/245eedf8-8997-4501-b6c9-a70cd89b94e1.jpg',
-    polaroidCaptions: { a: '✨', b: 'that day' },
   },
+
+  greetingSoftLine:
+    "You make ordinary days feel like something worth remembering. Take your time here — there's more to find.",
 
   cinematicLines: [
     'Some days feel ordinary',
@@ -61,8 +53,20 @@ export const CONFIG = {
     {
       id: 'notes',
       icon: '📝',
-      title: 'Notes',
-      description: 'Moments and things I love about you.',
+      title: 'Things I Love',
+      description: 'The list I keep adding to.',
+    },
+    {
+      id: 'photos',
+      icon: '📸',
+      title: 'Photos',
+      description: 'Us, collected.',
+    },
+    {
+      id: 'horoscope',
+      icon: '🔮',
+      title: 'Today',
+      description: 'What the day looks like, for you and for us.',
     },
     {
       id: 'questions',
@@ -120,7 +124,6 @@ export const CONFIG = {
     { label: 'Night', hour: '9', minute: '30', ampm: 'PM' },
   ],
   plannerDateReveal: "It's really happening.",
-  plannerFlowersCta: 'One more thing — build your flowers →',
 
   dateMoods: [
     { id: 'coffee', emoji: '☕', label: 'Coffee date', tagline: 'Good coffee, better conversation' },
@@ -163,11 +166,13 @@ export const CONFIG = {
     ],
   },
 
-  bouquetTitle: 'Arrange your bouquet',
-  bouquetHint: 'Drag stems into the vase. They fan out like a real arrangement.',
-  bouquetVaseLabel: "Rhea's flower pot 🪴",
+  bouquetTitle: 'Pick her flowers',
+  bouquetHint: 'Tap a stem to drop it in — or drag if you prefer.',
+  bouquetVaseLabel: "Rhea's flower pot",
   bouquetMilestoneCount: 5,
-  bouquetMilestoneMsg: 'So cute already. Keep going if you want 🪷',
+  bouquetMilestoneMsg: 'Looking lovely already. Add more, or continue whenever.',
+  bouquetContinueBtn: 'On to the good part →',
+  bouquetSkipCta: 'Skip for now',
 
   insideJoke: '[INSERT INSIDE JOKE HERE]',
 
@@ -306,6 +311,18 @@ export const CONFIG = {
       emoji: '🌸',
       name: 'Memory Lane',
       description: 'Moments and things I love about you',
+    },
+    {
+      id: 'photos',
+      emoji: '📸',
+      name: 'Photos',
+      description: 'Us, collected.',
+    },
+    {
+      id: 'horoscope',
+      emoji: '🔮',
+      name: 'Today',
+      description: 'What the day looks like, for you and for us.',
     },
     {
       id: 'ask-me-anything',

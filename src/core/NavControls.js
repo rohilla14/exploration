@@ -35,7 +35,8 @@ export class NavControls {
     const hideOn =
       screenId === SCREENS.LOADING ||
       screenId === SCREENS.DATE_PLANNER ||
-      screenId === SCREENS.BOUQUET;
+      screenId === SCREENS.CELEBRATION ||
+      screenId === SCREENS.HUB;
     const visible = !hideOn && index >= BACK_VISIBLE_FROM;
     this.backBtn.classList.toggle('nav-back--visible', visible);
     this.backBtn.disabled = index <= BACK_DISABLED_AT_OR_BELOW;
