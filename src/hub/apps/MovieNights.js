@@ -46,6 +46,10 @@ export function createMovieNightsApp(container, { analytics }) {
     return movie.ratings?.find((r) => r.rater === rater) ?? null;
   }
 
+  function bothRated(movie) {
+    return Boolean(ratingFor(movie, 'her') && ratingFor(movie, 'you'));
+  }
+
   function isMatch(movie) {
     const her = ratingFor(movie, 'her');
     const you = ratingFor(movie, 'you');
@@ -53,7 +57,7 @@ export function createMovieNightsApp(container, { analytics }) {
   }
 
   function updateAffinity() {
-    const dual = movies.filter((m) => ratingFor(m, 'her') && ratingFor(m, 'you'));
+    const dual = movies.filter(bothRated);
     const matches = dual.filter(isMatch).length;
     if (!dual.length) {
       affinityEl.hidden = true;
@@ -81,41 +85,62 @@ export function createMovieNightsApp(container, { analytics }) {
     if (movie.poster_path) {
       return `<img class="movie-poster__img" src="${escapeHtml(movie.poster_path)}" alt="" loading="lazy" />`;
     }
-    return `<span class="movie-poster__emoji">${movie.poster_emoji || '🎬'}</span>`;
+    return `
+      <div class="movie-poster__placeholder">
+        <span class="movie-poster__emoji">${movie.poster_emoji || '🎬'}</span>
+        <span class="movie-poster__placeholder-label">No poster yet</span>
+      </div>
+    `;
   }
 
   function renderCard(movie) {
     const herRating = ratingFor(movie, 'her');
     const hisRating = ratingFor(movie, 'you');
     const matched = isMatch(movie);
+    const dual = bothRated(movie);
 
     const card = document.createElement('article');
-    card.className = `movie-poster${matched ? ' movie-poster--match' : ''}`;
+    card.className = [
+      'movie-poster',
+      matched ? 'movie-poster--match' : '',
+      dual && !matched ? 'movie-poster--rated' : '',
+      movie.poster_path ? '' : 'movie-poster--placeholder',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
     card.innerHTML = `
-      <div class="movie-poster__art" aria-hidden="true">
-        ${posterArtMarkup(movie)}
-      </div>
-      <div class="movie-poster__body">
-        <div class="movie-poster__top">
-          <p class="movie-poster__title">${escapeHtml(movie.title)}</p>
-          ${matched ? `<span class="movie-card__match">${CONFIG.movieMatchMsg}</span>` : ''}
+      <div class="movie-poster__frame">
+        <div class="movie-poster__art" aria-hidden="true">
+          ${posterArtMarkup(movie)}
         </div>
-        ${movie.note ? `<p class="movie-poster__note">${escapeHtml(movie.note)}</p>` : ''}
-        <div class="movie-card__ratings">
-          <div class="movie-card__rating" data-role="her-rating">
-            <span class="movie-card__rating-label">${CONFIG.movieYourRating}</span>
-            <div class="movie-stars">${starsMarkup(herRating?.rating ?? 0, true)}</div>
-          </div>
-          <div class="movie-card__rating">
-            <span class="movie-card__rating-label">${CONFIG.movieHisRating}</span>
-            <div class="movie-stars">${starsMarkup(hisRating?.rating ?? 0, false)}</div>
+        ${
+          matched
+            ? `<span class="movie-poster__badge">${CONFIG.movieMatchMsg}</span>`
+            : dual
+              ? `<span class="movie-poster__badge movie-poster__badge--soft">Both rated</span>`
+              : ''
+        }
+        <div class="movie-poster__overlay">
+          <p class="movie-poster__title">${escapeHtml(movie.title)}</p>
+          ${movie.note ? `<p class="movie-poster__note">${escapeHtml(movie.note)}</p>` : ''}
+          <div class="movie-card__ratings">
+            <div class="movie-card__rating" data-role="her-rating">
+              <span class="movie-card__rating-label">${CONFIG.movieYourRating}</span>
+              <div class="movie-stars">${starsMarkup(herRating?.rating ?? 0, true)}</div>
+            </div>
+            <div class="movie-card__rating">
+              <span class="movie-card__rating-label">${CONFIG.movieHisRating}</span>
+              <div class="movie-stars">${starsMarkup(hisRating?.rating ?? 0, false)}</div>
+            </div>
           </div>
         </div>
       </div>
     `;
 
     card.querySelectorAll('[data-role="her-rating"] .movie-star').forEach((btn) => {
-      btn.addEventListener('click', async () => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
         const value = Number(btn.dataset.value);
         try {
           const result = await hubApi.rateMovie(movie.id, { rater: 'her', rating: value });

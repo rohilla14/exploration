@@ -10,7 +10,8 @@ export function createAskMeAnythingApp(container, { analytics }) {
   /** @type {any[]} */
   let questions = [];
   let view = 'active'; // 'active' | 'scrapbook'
-  let activeIndex = 0;
+  /** @type {number | string | null} */
+  let openQuestionId = null;
   let revealing = false;
 
   container.innerHTML = `
@@ -30,6 +31,8 @@ export function createAskMeAnythingApp(container, { analytics }) {
   tabs.forEach((tab) => {
     tab.addEventListener('click', () => {
       view = tab.dataset.view;
+      openQuestionId = null;
+      revealing = false;
       tabs.forEach((t) => t.classList.toggle('qa-toolbar__tab--active', t === tab));
       render();
     });
@@ -84,6 +87,31 @@ export function createAskMeAnythingApp(container, { analytics }) {
     `;
   }
 
+  function renderCloudField(pending) {
+    stage.innerHTML = `
+      <div class="qa-cloud-field">
+        ${pending
+          .map(
+            (q, i) => `
+          <button type="button" class="qa-cloud qa-cloud--${q.depth || 'closer'} qa-cloud--blob-${(i % 3) + 1}"
+                  data-id="${q.id}"
+                  style="--drift-delay: ${(i * 0.37).toFixed(2)}s; --drift-duration: ${6 + (i % 4)}s;">
+            <span class="qa-cloud__text">${escapeHtml(q.prompt)}</span>
+          </button>
+        `
+          )
+          .join('')}
+      </div>
+    `;
+
+    stage.querySelectorAll('.qa-cloud').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        openQuestionId = btn.dataset.id;
+        render();
+      });
+    });
+  }
+
   function renderActive() {
     const pending = unanswered();
     if (!questions.length) {
@@ -91,6 +119,7 @@ export function createAskMeAnythingApp(container, { analytics }) {
       return;
     }
     if (!pending.length) {
+      openQuestionId = null;
       stage.innerHTML = `
         <div class="qa-done">
           <p class="qa-done__title">${CONFIG.askMeAllDone}</p>
@@ -105,12 +134,23 @@ export function createAskMeAnythingApp(container, { analytics }) {
       return;
     }
 
-    if (activeIndex >= pending.length) activeIndex = 0;
-    const q = pending[activeIndex];
+    if (openQuestionId == null) {
+      renderCloudField(pending);
+      return;
+    }
+
+    const q = pending.find((item) => String(item.id) === String(openQuestionId));
+    if (!q) {
+      openQuestionId = null;
+      renderCloudField(pending);
+      return;
+    }
+
     const total = questions.length;
     const doneCount = answered().length;
 
     stage.innerHTML = `
+      <button type="button" class="qa-back" data-role="back-clouds">← back to questions</button>
       <div class="qa-progress">
         <div class="qa-progress__dots">
           ${questions
@@ -134,6 +174,12 @@ export function createAskMeAnythingApp(container, { analytics }) {
         <div class="qa-reveal-slot" data-role="reveal" hidden></div>
       </article>
     `;
+
+    stage.querySelector('[data-role="back-clouds"]')?.addEventListener('click', () => {
+      if (revealing) return;
+      openQuestionId = null;
+      render();
+    });
 
     const form = stage.querySelector('[data-role="form"]');
     const textarea = form.querySelector('textarea');
@@ -181,6 +227,7 @@ export function createAskMeAnythingApp(container, { analytics }) {
 
         revealSlot.querySelector('[data-role="next"]')?.addEventListener('click', () => {
           revealing = false;
+          openQuestionId = null;
           render();
         });
       } catch (err) {
@@ -221,6 +268,7 @@ export function createAskMeAnythingApp(container, { analytics }) {
 
   return {
     start() {
+      openQuestionId = null;
       load();
     },
     destroy() {

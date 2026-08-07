@@ -48,7 +48,7 @@ export const CONFIG = {
       id: 'games',
       icon: '🎮',
       title: 'Mini games',
-      description: 'Catch hearts, match memories, pulse to the beat.',
+      description: 'Crack the case, catch hearts, match memories.',
     },
     {
       id: 'notes',
@@ -132,6 +132,14 @@ export const CONFIG = {
     { id: 'dessert', emoji: '🍰', label: 'Dessert run', tagline: 'Something sweet, no occasion needed' },
     { id: 'explore', emoji: '🚶', label: 'Explore Delhi', tagline: 'Pick a neighbourhood, get a little lost' },
   ],
+
+  moodImages: {
+    coffee: '/assets/moods/coffee.jpg',
+    dinner: '/assets/moods/dinner.jpg',
+    outdoors: '/assets/moods/outdoors.jpg',
+    dessert: '/assets/moods/dessert.jpg',
+    explore: '/assets/moods/explore.jpg',
+  },
 
   datePlaces: {
     coffee: [

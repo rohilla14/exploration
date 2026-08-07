@@ -5,6 +5,7 @@ const INTENSITY = {
   bigask: { particles: 12, className: 'screen-atmosphere--bigask' },
   hub: { particles: 5, className: 'screen-atmosphere--hub' },
   story: { particles: 8, className: 'screen-atmosphere--story' },
+  planner: { particles: 6, className: 'screen-atmosphere--planner' },
 };
 
 function prefersReducedMotion() {
@@ -16,7 +17,7 @@ function prefersReducedMotion() {
  * Reuses FloatingHearts particle logic; respects prefers-reduced-motion.
  *
  * @param {HTMLElement} parent
- * @param {{ intensity?: 'loading' | 'bigask' | 'hub' | 'story' }} [options]
+ * @param {{ intensity?: 'loading' | 'bigask' | 'hub' | 'story' | 'planner' }} [options]
  * @returns {{ element: HTMLElement, destroy: () => void }}
  */
 export function createAmbientAtmosphere(parent, { intensity = 'hub' } = {}) {

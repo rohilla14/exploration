@@ -258,6 +258,25 @@ body {
   background: rgba(184, 216, 236, 0.32);
 }
 
+.screen-atmosphere--planner .screen-atmosphere__gradient {
+  background:
+    radial-gradient(ellipse 65% 45% at 20% 15%, rgba(245, 198, 168, 0.18), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 70%, rgba(181, 196, 170, 0.14), transparent 50%),
+    linear-gradient(165deg, rgba(250, 246, 240, 0.08), rgba(245, 237, 227, 0.22));
+}
+
+.screen-atmosphere--planner .screen-atmosphere__glow {
+  opacity: 0.3;
+}
+
+.screen-atmosphere--planner .screen-atmosphere__glow--1 {
+  background: rgba(232, 180, 184, 0.32);
+}
+
+.screen-atmosphere--planner .screen-atmosphere__glow--2 {
+  background: rgba(181, 196, 170, 0.28);
+}
+
 .screen-atmosphere--static .screen-atmosphere__glow,
 .screen-atmosphere--static .screen-atmosphere__blob {
   animation: none;
@@ -287,7 +306,8 @@ body {
 .screen--loading,
 .screen--bigask,
 .screen--hub,
-.screen--cinematic {
+.screen--cinematic,
+.screen--planner {
   position: absolute;
 }
 
@@ -295,7 +315,10 @@ body {
 .screen--bigask > .screen__inner,
 .screen--hub > .hub__inner,
 .screen--hub > .screen__inner,
-.screen--cinematic > .cinematic-scroll {
+.screen--cinematic > .cinematic-scroll,
+.screen--planner > .planner-layout,
+.screen--planner > .planner-welcome,
+.screen--planner > .planner-lockin {
   position: relative;
   z-index: 1;
 }

@@ -3,6 +3,7 @@ import { EVENTS } from '../../constants/eventTypes.js';
 import { hubApi } from '../api.js';
 
 const SEARCH_DEBOUNCE_MS = 450;
+const STAGGER_MS = 60;
 
 /** @param {HTMLElement} container @param {{ analytics: import('../../analytics/Analytics.js').Analytics }} ctx */
 export function createOurPlaylistApp(container, { analytics }) {
@@ -11,6 +12,8 @@ export function createOurPlaylistApp(container, { analytics }) {
   let songs = [];
   let filter = 'all'; // all | her | you
   let pendingTrack = null;
+  /** @type {number | string | null} */
+  let activeSongId = null;
 
   container.innerHTML = `
     <div class="hub-app hub-app--playlist">
@@ -94,7 +97,7 @@ export function createOurPlaylistApp(container, { analytics }) {
       .map(
         (r, i) => `
         <div class="playlist-result" data-index="${i}">
-          ${r.albumArt ? `<img class="playlist-result__art" src="${r.albumArt}" alt="" />` : '<span class="playlist-result__art playlist-result__art--placeholder">🎵</span>'}
+          ${r.albumArt ? `<img class="playlist-result__art" src="${escapeHtml(r.albumArt)}" alt="" />` : '<span class="playlist-result__art playlist-result__art--placeholder">🎵</span>'}
           <div class="playlist-result__meta">
             <span class="playlist-result__title">${escapeHtml(r.title)}</span>
             <span class="playlist-result__artist">${escapeHtml(r.artist)}</span>
@@ -161,6 +164,13 @@ export function createOurPlaylistApp(container, { analytics }) {
     return songs;
   }
 
+  function artMarkup(song) {
+    if (song.album_art) {
+      return `<img class="playlist-song__art" src="${escapeHtml(song.album_art)}" alt="" loading="lazy" />`;
+    }
+    return `<span class="playlist-song__art playlist-song__art--placeholder" aria-hidden="true">🎵</span>`;
+  }
+
   function renderSongList() {
     const visible = filteredSongs();
     if (!songs.length) {
@@ -178,29 +188,56 @@ export function createOurPlaylistApp(container, { analytics }) {
     }
 
     list.innerHTML = visible
-      .map(
-        (s) => `
-        <div class="playlist-song playlist-song--row">
+      .map((s, i) => {
+        const isActive = String(activeSongId) === String(s.id);
+        const addedLabel = s.added_by === 'her' ? CONFIG.playlistAddedByHer : CONFIG.playlistAddedByYou;
+        return `
+        <article class="playlist-song${isActive ? ' playlist-song--active' : ''}"
+                 data-id="${s.id}"
+                 style="--stagger: ${i * STAGGER_MS}ms;">
+          <button type="button" class="playlist-song__hit" data-role="toggle" aria-expanded="${isActive}" ${
+            s.spotify_id ? '' : 'disabled'
+          }>
+            <span class="playlist-song__art-wrap">
+              ${artMarkup(s)}
+              ${isActive ? '<span class="playlist-song__eq" aria-hidden="true"><i></i><i></i><i></i></span>' : ''}
+            </span>
+            <span class="playlist-song__meta">
+              <span class="playlist-song__title">${escapeHtml(s.title)}</span>
+              <span class="playlist-song__artist">${escapeHtml(s.artist ?? '')}</span>
+              ${s.note ? `<span class="playlist-song__note">${escapeHtml(s.note)}</span>` : ''}
+              <span class="playlist-song__added">${escapeHtml(addedLabel)}</span>
+            </span>
+            ${
+              s.spotify_id
+                ? `<span class="playlist-song__cue">${isActive ? 'Hide player' : 'Play'}</span>`
+                : ''
+            }
+          </button>
           ${
-            s.album_art
-              ? `<img class="playlist-song__art" src="${s.album_art}" alt="" />`
-              : `<span class="playlist-song__art playlist-song__art--placeholder">🎵</span>`
-          }
-          <div class="playlist-song__meta">
-            <span class="playlist-song__title">${escapeHtml(s.title)}</span>
-            <span class="playlist-song__artist">${escapeHtml(s.artist ?? '')}</span>
-            ${s.note ? `<span class="playlist-song__note">${escapeHtml(s.note)}</span>` : ''}
-            <span class="playlist-song__added">${s.added_by === 'her' ? CONFIG.playlistAddedByHer : CONFIG.playlistAddedByYou}</span>
-          </div>
-          ${
-            s.spotify_id
-              ? `<iframe class="playlist-song__embed" src="https://open.spotify.com/embed/track/${s.spotify_id}" width="100%" height="80" frameborder="0" allow="encrypted-media" loading="lazy"></iframe>`
+            isActive && s.spotify_id
+              ? `<div class="playlist-song__player">
+                   <iframe class="playlist-song__embed"
+                           src="https://open.spotify.com/embed/track/${escapeHtml(s.spotify_id)}?utm_source=generator"
+                           title="${escapeHtml(s.title)}"
+                           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                           loading="lazy"></iframe>
+                 </div>`
               : ''
           }
-        </div>
-      `
-      )
+        </article>
+      `;
+      })
       .join('');
+
+    list.querySelectorAll('[data-role="toggle"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.closest('.playlist-song')?.dataset.id;
+        if (!id) return;
+        activeSongId = String(activeSongId) === String(id) ? null : id;
+        renderSongList();
+      });
+    });
   }
 
   async function loadSongs() {

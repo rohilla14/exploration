@@ -153,4 +153,10 @@ try {
   // column already exists
 }
 
+try {
+  db.exec(`ALTER TABLE songs ADD COLUMN album_art TEXT`);
+} catch {
+  // column already exists
+}
+
 export { db, DB_PATH };

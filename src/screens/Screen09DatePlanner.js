@@ -3,6 +3,7 @@ import { SCREENS } from '../constants/screens.js';
 import { EVENTS } from '../constants/eventTypes.js';
 import { createLifecycle } from '../utils/lifecycle.js';
 import { applyCoverBackground } from '../utils/photos.js';
+import { createAmbientAtmosphere } from '../core/AmbientAtmosphere.js';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = [
@@ -46,6 +47,8 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
   const element = document.createElement('section');
   element.className = 'screen screen--planner';
 
+  const atmosphere = createAmbientAtmosphere(element, { intensity: 'planner' });
+
   element.innerHTML = `
     <div class="planner-welcome">
       <div class="planner-welcome__bg photo-slot photo-slot--empty" aria-hidden="true"></div>
@@ -54,7 +57,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
         <p class="planner-welcome__eyebrow">${CONFIG.plannerWelcomeEyebrow}</p>
         <h2 class="planner-welcome__title">${CONFIG.plannerWelcomeTitle}</h2>
         <p class="planner-welcome__sub">${CONFIG.plannerWelcomeSub}</p>
-        <button type="button" class="btn btn--primary planner-welcome__btn">${CONFIG.plannerWelcomeBtn}</button>
+        <button type="button" class="btn btn--primary planner-welcome__btn planner-btn-playful">${CONFIG.plannerWelcomeBtn}</button>
       </div>
     </div>
     <div class="planner-lockin" hidden>
@@ -71,7 +74,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
           placeholder="${CONFIG.plannerLockInPlaceholder}"
         />
         <p class="planner-lockin__error" hidden>${CONFIG.plannerLockInError}</p>
-        <button type="button" class="btn btn--primary planner-lockin__submit">Seal it 💌</button>
+        <button type="button" class="btn btn--primary planner-lockin__submit planner-btn-playful">Seal it 💌</button>
       </div>
     </div>
     <div class="planner-layout">
@@ -105,7 +108,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
                 </div>
                 <p class="planner-time__preview"></p>
               </div>
-              <button type="button" class="btn btn--primary planner-time__next">Set this time →</button>
+              <button type="button" class="btn btn--primary planner-time__next planner-btn-playful">Set this time →</button>
             </div>
           </div>
           <div class="planner-palette__extras"></div>
@@ -116,7 +119,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
         <p class="planner-board__title">The plan</p>
         <div class="planner-board__slots"></div>
         <div class="planner-board__finale">
-          <button type="button" class="btn btn--primary planner-board__stamp" hidden>${CONFIG.plannerConfirmBtn}</button>
+          <button type="button" class="btn btn--primary planner-board__stamp planner-btn-playful" hidden>${CONFIG.plannerConfirmBtn}</button>
           <div class="planner-board__reveal">
             <p class="planner-board__reveal-text">${CONFIG.plannerDateReveal}</p>
           </div>
@@ -276,6 +279,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
     const progressSteps = (state.filled[0] ? 1 : 0) + (state.filled[1] ? 1 : 0) + (state.activities.length ? 1 : 0);
     board.style.setProperty('--board-progress', String(progressSteps / 3));
     stampBtn.hidden = !canLockIn();
+    stampBtn.classList.toggle('planner-btn-playful--ready', canLockIn() && !state.stamped);
     revealEl.classList.toggle('planner-board__reveal--visible', state.stamped);
     board.classList.toggle('planner-board--complete', state.stamped);
   }
@@ -421,6 +425,25 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
       tokenTray.appendChild(moodBar);
 
       const mood = CONFIG.dateMoods.find((m) => m.id === state.selectedMoodId) || CONFIG.dateMoods[0];
+      const heroSrc = CONFIG.moodImages?.[mood.id];
+      if (heroSrc) {
+        const hero = document.createElement('div');
+        hero.className = 'planner-mood-hero';
+        hero.innerHTML = `
+          <div class="planner-mood-hero__media" data-role="mood-hero-media"></div>
+          <div class="planner-mood-hero__veil" aria-hidden="true"></div>
+          <p class="planner-mood-hero__tagline">${mood.emoji} ${mood.tagline || mood.label}</p>
+        `;
+        const media = hero.querySelector('[data-role="mood-hero-media"]');
+        const img = new Image();
+        img.onload = () => {
+          media.style.backgroundImage = `url(${heroSrc})`;
+          hero.classList.add('planner-mood-hero--ready');
+        };
+        img.src = heroSrc;
+        tokenTray.appendChild(hero);
+      }
+
       (CONFIG.datePlaces[mood.id] || []).forEach((place) => {
         tokenTray.appendChild(
           makeToken({
@@ -843,6 +866,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
 
   function openLockIn() {
     if (!canLockIn()) return;
+    confetti.burst(36);
     if (lockInPreview) {
       const stops = state.activities.map((a) => `${a.emoji} ${a.place}`).join(' · ');
       lockInPreview.innerHTML = `
@@ -868,6 +892,7 @@ export function createDatePlannerScreen({ manager, analytics, confetti }) {
       return;
     }
 
+    confetti.burst(55);
     closeLockIn();
     await stampDate();
     sessionStorage.setItem('exploration.datePlan', JSON.stringify(getPayload()));

@@ -3,6 +3,10 @@ import { EVENTS } from '../constants/eventTypes.js';
 
 const STORAGE_KEY = 'exploration.smileCount';
 
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 /** @param {number} count */
 function getSmileTier(count) {
   const tiers = CONFIG.smileTiers ?? [{ min: 0, emoji: '😊', label: CONFIG.smileCounterLabel, glow: 0 }];
@@ -23,6 +27,15 @@ function tierIndex(count) {
   return idx;
 }
 
+/** @param {number} count */
+function nextTierInfo(count) {
+  const tiers = CONFIG.smileTiers ?? [];
+  const idx = tierIndex(count);
+  const next = tiers[idx + 1];
+  if (!next) return null;
+  return { label: next.label, remaining: Math.max(0, next.min - count) };
+}
+
 /**
  * Persistent smile counter — top corner, emoji evolves as count grows.
  * @param {{ analytics: import('../analytics/Analytics.js').Analytics, confetti?: import('./Confetti.js').Confetti }} services
@@ -31,11 +44,13 @@ export function initSmileCounter({ analytics, confetti }) {
   let count = Number(sessionStorage.getItem(STORAGE_KEY) || 0);
   let hoverIdx = 0;
   let hideTimer = null;
+  let lastTierIdx = tierIndex(count);
 
   const root = document.createElement('div');
   root.className = 'smile-counter';
   root.innerHTML = `
     <button type="button" class="smile-counter__btn" aria-label="${CONFIG.smileCounterLabel}">
+      <span class="smile-counter__particles" data-role="particles" aria-hidden="true"></span>
       <span class="smile-counter__emoji"></span>
       <span class="smile-counter__count">0</span>
       <span class="smile-counter__label"></span>
@@ -48,8 +63,13 @@ export function initSmileCounter({ analytics, confetti }) {
   const countEl = root.querySelector('.smile-counter__count');
   const labelEl = root.querySelector('.smile-counter__label');
   const bubble = root.querySelector('.smile-counter__bubble');
+  const particlesEl = root.querySelector('[data-role="particles"]');
   const baseMessages = CONFIG.smileHoverMessages ?? [];
   const highMessages = CONFIG.smileHoverMessagesHigh ?? [];
+
+  if (!prefersReducedMotion()) {
+    root.classList.add('smile-counter--breathe');
+  }
 
   function messagePool() {
     if (count >= 10 && highMessages.length) return highMessages;
@@ -57,24 +77,61 @@ export function initSmileCounter({ analytics, confetti }) {
     return baseMessages;
   }
 
-  function applyTier() {
+  function spawnParticles() {
+    if (prefersReducedMotion() || !particlesEl) return;
+    particlesEl.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const p = document.createElement('span');
+      p.className = 'smile-counter__spark';
+      p.textContent = i === 1 ? '✨' : '💕';
+      p.style.setProperty('--sx', `${(Math.random() - 0.5) * 28}px`);
+      p.style.setProperty('--delay', `${i * 0.05}s`);
+      particlesEl.appendChild(p);
+    }
+    window.setTimeout(() => {
+      if (particlesEl.isConnected) particlesEl.innerHTML = '';
+    }, 900);
+  }
+
+  function applyTier({ animateLabel = false } = {}) {
     const tier = getSmileTier(count);
     const idx = tierIndex(count);
     emojiEl.textContent = tier.emoji;
-    labelEl.textContent = tier.label;
     countEl.textContent = String(count);
     root.dataset.tier = String(idx);
     root.dataset.glow = String(tier.glow ?? 0);
     root.classList.toggle('smile-counter--active', count > 0);
     root.classList.toggle('smile-counter--legend', count >= 40);
+
+    if (animateLabel && idx !== lastTierIdx && !prefersReducedMotion()) {
+      labelEl.classList.add('smile-counter__label--out');
+      window.setTimeout(() => {
+        labelEl.textContent = tier.label;
+        labelEl.classList.remove('smile-counter__label--out');
+        labelEl.classList.add('smile-counter__label--in');
+        root.classList.add('smile-counter--tier-glow');
+        window.setTimeout(() => {
+          labelEl.classList.remove('smile-counter__label--in');
+          root.classList.remove('smile-counter--tier-glow');
+        }, 480);
+      }, 180);
+    } else {
+      labelEl.textContent = tier.label;
+    }
+    lastTierIdx = idx;
   }
 
   function showBubble() {
-    const messages = messagePool();
-    if (!messages.length) return;
     clearTimeout(hideTimer);
-    bubble.textContent = messages[hoverIdx % messages.length];
-    hoverIdx += 1;
+    const next = nextTierInfo(count);
+    if (next && next.remaining > 0) {
+      bubble.textContent = `${next.remaining} more to ${next.label}`;
+    } else {
+      const messages = messagePool();
+      if (!messages.length) return;
+      bubble.textContent = messages[hoverIdx % messages.length];
+      hoverIdx += 1;
+    }
     bubble.hidden = false;
     root.classList.add('smile-counter--hover');
   }
@@ -93,14 +150,20 @@ export function initSmileCounter({ analytics, confetti }) {
   btn.addEventListener('blur', hideBubbleSoon);
 
   btn.addEventListener('click', () => {
+    const prevTier = lastTierIdx;
     count += 1;
     sessionStorage.setItem(STORAGE_KEY, String(count));
-    applyTier();
+    applyTier({ animateLabel: true });
     btn.classList.add('smile-counter__btn--pop');
-    window.setTimeout(() => btn.classList.remove('smile-counter__btn--pop'), 420);
+    emojiEl.classList.add('smile-counter__emoji--bounce');
+    spawnParticles();
+    window.setTimeout(() => {
+      btn.classList.remove('smile-counter__btn--pop');
+      emojiEl.classList.remove('smile-counter__emoji--bounce');
+    }, 420);
     const burst = Math.min(18 + Math.floor(count / 3) * 4, 48);
     confetti?.burst(burst);
-    analytics.track(EVENTS.SMILE_PRESS, { count, tier: tierIndex(count) });
+    analytics.track(EVENTS.SMILE_PRESS, { count, tier: tierIndex(count), prevTier });
     showBubble();
     hideBubbleSoon();
   });
