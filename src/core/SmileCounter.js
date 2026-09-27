@@ -37,11 +37,19 @@ function nextTierInfo(count) {
 }
 
 /**
- * Persistent smile counter — top corner, emoji evolves as count grows.
+ * Smile counter in the top corner. The emoji grows as the count does, and it resets
+ * to zero on every visit.
  * @param {{ analytics: import('../analytics/Analytics.js').Analytics, confetti?: import('./Confetti.js').Confetti }} services
  */
 export function initSmileCounter({ analytics, confetti }) {
-  let count = Number(sessionStorage.getItem(STORAGE_KEY) || 0);
+  // Starts at zero on every visit. Nothing is carried over from a previous session,
+  // so the counter never looks stuck on an old number.
+  let count = 0;
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // storage blocked (private mode): the counter is in memory anyway
+  }
   let hoverIdx = 0;
   let hideTimer = null;
   let lastTierIdx = tierIndex(count);
@@ -152,7 +160,6 @@ export function initSmileCounter({ analytics, confetti }) {
   btn.addEventListener('click', () => {
     const prevTier = lastTierIdx;
     count += 1;
-    sessionStorage.setItem(STORAGE_KEY, String(count));
     applyTier({ animateLabel: true });
     btn.classList.add('smile-counter__btn--pop');
     emojiEl.classList.add('smile-counter__emoji--bounce');

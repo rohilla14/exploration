@@ -1,0 +1,262 @@
+/* ============================================================
+   Cozy desktop theme for the rest of the journey: story, big ask, planner, bouquet,
+   celebration, and the insides of the hub apps. Loaded after desktop.css.
+   ============================================================ */
+
+/* ---------- Shared: background, buttons, form fields ---------- */
+
+/* faint dot grid over the whole page, like the desktop wallpaper pattern */
+.ambient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(122, 59, 69, 0.11) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+}
+
+.btn {
+  border: 2px solid var(--win-border);
+  font-family: var(--font-os);
+  font-weight: 500;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  box-shadow: 3px 3px 0 rgba(122, 59, 69, 0.28);
+}
+
+.btn:hover:not(.big-ask__btn) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 rgba(122, 59, 69, 0.32);
+}
+
+.btn:active:not(.big-ask__btn) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.btn--yes {
+  font-size: 1.05rem;
+  box-shadow: 3px 3px 0 rgba(122, 59, 69, 0.3);
+}
+
+.btn--secondary,
+.btn--no {
+  border-color: var(--win-border);
+  color: var(--burgundy);
+  background: var(--cream-warm);
+}
+
+.win__body input,
+.win__body textarea,
+.win__body select {
+  border: 2px solid var(--win-border);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+.win__body input:focus-visible,
+.win__body textarea:focus-visible,
+.win__body select:focus-visible {
+  outline: 2px solid var(--rose-deep);
+  outline-offset: 2px;
+}
+
+/* tabs inside app windows */
+.hub-tab,
+.qa-toolbar__tab {
+  border: 2px solid var(--win-border);
+  background: var(--cream-warm);
+  color: var(--burgundy);
+  font-family: var(--font-os);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.hub-tab--active,
+.qa-toolbar__tab--active {
+  background: var(--rose-dusty);
+  color: var(--burgundy);
+  box-shadow: 2px 2px 0 rgba(122, 59, 69, 0.25);
+}
+
+.hub-app__subtitle {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: 1.05rem;
+}
+
+/* ---------- The Story ---------- */
+
+.story-greeting__scroll,
+.story-hub__intro {
+  font-family: var(--font-os);
+}
+
+.story-hub__intro {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  max-width: 26rem;
+  margin-inline: auto;
+}
+
+.story-greeting__scroll {
+  letter-spacing: 0.12em;
+}
+
+/* ---------- The Big Ask: a small window with the question ---------- */
+
+.screen--bigask .big-ask-win.screen-card,
+.celebration__inner.win {
+  width: min(560px, 92vw);
+  padding: 0;
+  background: var(--win-bg);
+  border: 2px solid var(--win-border);
+  border-radius: 14px;
+  box-shadow: var(--win-shadow);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  overflow: hidden;
+}
+
+.big-ask-win.screen-card::before,
+.big-ask-win.screen-card::after {
+  display: none;
+}
+
+.big-ask-win .win__bar,
+.celebration__inner .win__bar {
+  cursor: default;
+}
+
+.big-ask__body {
+  padding: 2.4rem 1.75rem 2.8rem;
+}
+
+.celebration__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.75rem 1.75rem 2rem;
+  background: linear-gradient(180deg, var(--win-bg), var(--cream-warm));
+}
+
+.celebration-photo {
+  border: 2px solid var(--win-border);
+  box-shadow: 4px 4px 0 rgba(122, 59, 69, 0.22);
+}
+
+/* ---------- Date planner ---------- */
+
+/* welcome text sits low on the photo so it never covers her face */
+.planner-welcome {
+  align-items: flex-end;
+  padding-bottom: 12vh;
+}
+
+/* ---------- Bouquet ---------- */
+
+.bb {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255, 255, 255, 0.75), transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(245, 198, 168, 0.45), transparent 50%),
+    linear-gradient(160deg, var(--sky-soft) 0%, var(--pink-soft) 60%, var(--peach) 130%);
+}
+
+.bb-header__eyebrow,
+.bb-tray__label,
+.bb-footer__count,
+.bb-clear,
+.bb-skip {
+  font-family: var(--font-os);
+}
+
+.bb-tray {
+  border: 2px solid var(--win-border);
+  border-radius: 14px;
+  background: var(--win-bg);
+  box-shadow: var(--win-shadow);
+}
+
+.bb-tray__flower {
+  border: 1.5px solid rgba(122, 59, 69, 0.3);
+  border-radius: 10px;
+}
+
+.celebration__inner.win {
+  align-items: stretch;
+}
+
+.celebration__inner .win__bar {
+  align-self: stretch;
+}
+
+
+/* ---------- Why I Made This: the photo is a clear banner, not a blurred wash ---------- */
+
+.hub-app--why {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 1.25rem;
+  padding: 0;
+  min-height: 0;
+}
+
+.why-made__photo-bg,
+.why-made__photo-bg.photo-slot {
+  position: relative;
+  inset: auto;
+  flex: 0 0 auto;
+  height: clamp(200px, 32vh, 280px);
+  border: 2px solid var(--win-border);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 rgba(122, 59, 69, 0.2);
+  filter: none;
+  transform: none;
+  opacity: 1;
+}
+
+.why-made__photo-bg::after {
+  display: none;
+}
+
+.why-made__photo-bg.photo-slot--empty {
+  display: none;
+}
+
+.why-made__content {
+  max-width: none;
+  padding: 0 0.25rem 0.5rem;
+}
+
+/* A disabled button should look it: the planner relies on this to gate each step. */
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.42;
+  cursor: default;
+  filter: grayscale(0.35);
+  box-shadow: none;
+  transform: none;
+}
+
+.btn:disabled:hover,
+.btn[disabled]:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Buttons lean toward the cursor. The offset is set by MagneticButtons.js. */
+.is-magnetic {
+  transform: translate(var(--mag-x, 0), var(--mag-y, 0));
+  transition: transform 0.12s ease-out;
+}
+
+.btn.is-magnetic:hover {
+  transform: translate(calc(var(--mag-x, 0px) - 1px), calc(var(--mag-y, 0px) - 1px));
+}
+
+.desk-icon__tile.is-magnetic,
+.dp-cal__day.is-magnetic {
+  transition: transform 0.14s ease-out, background 0.15s;
+}

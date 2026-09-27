@@ -2,16 +2,9 @@ import { CONFIG } from '../config.js';
 import { SCREENS } from '../constants/screens.js';
 import { EVENTS } from '../constants/eventTypes.js';
 import { createLifecycle } from '../utils/lifecycle.js';
-import { GAME_REGISTRY } from '../games/registry.js';
-import { getDoneGames, markGameDone } from '../utils/gameProgress.js';
+import { focusOf } from '../utils/photos.js';
+import { escapeHtml } from '../utils/dom.js';
 import { createAmbientAtmosphere } from '../core/AmbientAtmosphere.js';
-import { createMemoryLaneApp } from '../hub/apps/MemoryLane.js';
-import { createAskMeAnythingApp } from '../hub/apps/AskMeAnything.js';
-import { createOurPlaylistApp } from '../hub/apps/OurPlaylist.js';
-import { createMovieNightsApp } from '../hub/apps/MovieNights.js';
-import { createDearDiaryApp } from '../hub/apps/DearDiary.js';
-import { createPhotoWallApp } from '../hub/apps/PhotoWall.js';
-import { createHoroscopeApp } from '../hub/apps/Horoscope.js';
 import Lenis from 'lenis';
 
 const GLITCH_CHARS =
@@ -74,6 +67,7 @@ export function createScrollStoryScreen({ manager, analytics }) {
     wrap.className = `polaroid ${className}`;
     wrap.innerHTML = `<img alt="" />`;
     const img = wrap.querySelector('img');
+    img.style.objectPosition = focusOf(src);
     const probe = new Image();
     probe.onload = () => {
       img.src = src;
@@ -100,19 +94,23 @@ export function createScrollStoryScreen({ manager, analytics }) {
   const photoWrap = document.createElement('div');
   photoWrap.className = 'cinematic-photo-wrap';
 
-  const cinematicSrc = CONFIG.photos?.cinematic || '/assets/photo.jpeg';
-  const photoLayer = document.createElement('div');
-  photoLayer.className = 'cinematic-photo cinematic-photo--active cinematic-photo--placeholder';
-  photoLayer.innerHTML = 'Your photo goes here<small>public/assets/photo.jpeg</small>';
-
-  const cinematicImg = new Image();
-  cinematicImg.src = cinematicSrc;
-  cinematicImg.onload = () => {
-    photoLayer.classList.remove('cinematic-photo--placeholder');
-    photoLayer.textContent = '';
-    photoLayer.style.backgroundImage = `url(${cinematicSrc})`;
-  };
-  photoWrap.appendChild(photoLayer);
+  // One photo layer per beat. Each beat has its own crop, so the photo moves like a camera.
+  const beats = CONFIG.storyBeats ?? [];
+  const photoLayers = beats.map((beat, i) => {
+    const layer = document.createElement('div');
+    layer.className = 'cinematic-photo cinematic-photo--placeholder';
+    if (i === 0) layer.classList.add('cinematic-photo--active');
+    const img = new Image();
+    img.onload = () => {
+      layer.classList.remove('cinematic-photo--placeholder');
+      layer.style.backgroundImage = `url(${beat.photo})`;
+      layer.style.backgroundPosition = beat.focus || focusOf(beat.photo);
+    };
+    img.src = beat.photo;
+    photoWrap.appendChild(layer);
+    return layer;
+  });
+  let activePhoto = 0;
 
   const vignette = document.createElement('div');
   vignette.className = 'cinematic-vignette';
@@ -120,11 +118,16 @@ export function createScrollStoryScreen({ manager, analytics }) {
   const linesWrap = document.createElement('div');
   linesWrap.className = 'cinematic-lines';
 
-  CONFIG.cinematicLines.forEach((line) => {
+  // Each line is split into words so they can light up one at a time as she scrolls.
+  const lineEls = beats.map((beat) => {
     const p = document.createElement('p');
     p.className = 'cinematic-line';
-    p.textContent = line;
+    p.innerHTML = beat.line
+      .split(' ')
+      .map((w) => `<span class="cinematic-word">${escapeHtml(w)}</span>`)
+      .join(' ');
     linesWrap.appendChild(p);
+    return { el: p, words: [...p.querySelectorAll('.cinematic-word')] };
   });
 
   const finale = document.createElement('p');
@@ -137,7 +140,30 @@ export function createScrollStoryScreen({ manager, analytics }) {
   sticky.appendChild(finale);
   cinematicTrack.appendChild(sticky);
 
-  // —— Hub intro (after cinematic — scroll to see what's on the site) ——
+  // —— Film strip: scrolls sideways while she scrolls down ——
+  const stripTrack = document.createElement('div');
+  stripTrack.className = 'strip-track';
+  const stripSticky = document.createElement('div');
+  stripSticky.className = 'strip-sticky';
+  const stripRail = document.createElement('div');
+  stripRail.className = 'strip-rail';
+  const stripPhotos = (CONFIG.gallery ?? []).filter((p) => p?.src);
+  stripPhotos.forEach(({ src, caption }) => {
+    const frame = document.createElement('figure');
+    frame.className = 'strip-frame';
+    frame.innerHTML = `
+      <span class="strip-frame__img" style="background-image:url(${src});background-position:${focusOf(src)}"></span>
+      <figcaption class="strip-frame__cap">${escapeHtml(caption ?? '')}</figcaption>
+    `;
+    stripRail.appendChild(frame);
+  });
+  const stripLabel = document.createElement('p');
+  stripLabel.className = 'strip-label';
+  stripLabel.textContent = CONFIG.storyStripLabel;
+  stripSticky.append(stripLabel, stripRail);
+  stripTrack.appendChild(stripSticky);
+
+  // —— Hand-off to the photo-lens page (after the cinematic) ——
   const hubSection = document.createElement('div');
   hubSection.className = 'story-hub';
 
@@ -146,258 +172,127 @@ export function createScrollStoryScreen({ manager, analytics }) {
 
   const hubIntro = document.createElement('p');
   hubIntro.className = 'story-hub__intro';
-  hubIntro.textContent = CONFIG.hubIntro;
-
-  const hubGrid = document.createElement('div');
-  hubGrid.className = 'story-hub__grid';
-
-  const CARD_ACCENTS = [
-    'var(--peach)',
-    'var(--sky-soft)',
-    'var(--rose-dusty)',
-    'var(--sage)',
-    'var(--butter)',
-    'var(--cream-warm)',
-  ];
-
-  CONFIG.hubFeatures.forEach((feature, index) => {
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = 'story-hub__card screen-card';
-    card.dataset.featureId = feature.id;
-    card.style.setProperty('--card-accent', CARD_ACCENTS[index % CARD_ACCENTS.length]);
-    card.innerHTML = `
-      <span class="story-hub__card-icon">${feature.icon}</span>
-      <h3 class="story-hub__card-title">${feature.title}</h3>
-      <p class="story-hub__card-desc">${feature.description}</p>
-    `;
-    card.addEventListener('click', () => openFeature(feature, card));
-    card.addEventListener('pointermove', (e) => tiltCard(card, e));
-    card.addEventListener('pointerleave', () => resetCardTilt(card));
-    hubGrid.appendChild(card);
-  });
+  hubIntro.textContent = CONFIG.storyHandoffIntro;
 
   const hubContinue = document.createElement('button');
   hubContinue.type = 'button';
   hubContinue.className = 'btn btn--primary story-hub__continue';
-  hubContinue.textContent = CONFIG.hubContinueLabel;
+  hubContinue.textContent = CONFIG.storyContinueLabel;
 
   hubInner.appendChild(hubIntro);
-  hubInner.appendChild(hubGrid);
   hubInner.appendChild(hubContinue);
   hubSection.appendChild(hubInner);
 
   track.appendChild(greetingSection);
   track.appendChild(cinematicTrack);
+  track.appendChild(stripTrack);
   track.appendChild(hubSection);
+  // A thin rail down the side: it fills as she scrolls, with a dot per chapter.
+  const rail = document.createElement('div');
+  rail.className = 'story-rail';
+  rail.setAttribute('aria-hidden', 'true');
+  rail.innerHTML = '<span class="story-rail__line"></span>';
+  const railDots = ['greeting', 'story', 'photos', 'end'].map(() => {
+    const dot = document.createElement('span');
+    dot.className = 'story-rail__dot';
+    rail.appendChild(dot);
+    return dot;
+  });
+
   scrollRoot.appendChild(track);
   element.appendChild(scrollRoot);
-
-  const featureOverlay = document.createElement('div');
-  featureOverlay.className = 'story-hub-overlay';
-  element.appendChild(featureOverlay);
-
-  /** @type {{ destroy: () => void } | null} */
-  let activeFeature = null;
-
-  function closeFeature() {
-    if (activeFeature) {
-      activeFeature.destroy();
-      activeFeature = null;
-    }
-    featureOverlay.classList.remove('story-hub-overlay--active', 'story-hub-overlay--enter');
-    featureOverlay.style.removeProperty('--overlay-ox');
-    featureOverlay.style.removeProperty('--overlay-oy');
-    featureOverlay.innerHTML = '';
-  }
-
-  function tiltCard(card, e) {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (e.pointerType === 'touch') return;
-    const r = card.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
-    card.style.setProperty('--tilt-x', `${(-py * 6).toFixed(2)}deg`);
-    card.style.setProperty('--tilt-y', `${(px * 7).toFixed(2)}deg`);
-    card.classList.add('story-hub__card--tilting');
-  }
-
-  function resetCardTilt(card) {
-    card.style.setProperty('--tilt-x', '0deg');
-    card.style.setProperty('--tilt-y', '0deg');
-    card.classList.remove('story-hub__card--tilting');
-  }
-
-  function openFeatureOverlay(title, buildBody, originCard) {
-    closeFeature();
-
-    if (originCard) {
-      const cardRect = originCard.getBoundingClientRect();
-      const hostRect = element.getBoundingClientRect();
-      const ox = ((cardRect.left + cardRect.width / 2 - hostRect.left) / hostRect.width) * 100;
-      const oy = ((cardRect.top + cardRect.height / 2 - hostRect.top) / hostRect.height) * 100;
-      featureOverlay.style.setProperty('--overlay-ox', `${ox}%`);
-      featureOverlay.style.setProperty('--overlay-oy', `${oy}%`);
-    } else {
-      featureOverlay.style.setProperty('--overlay-ox', '50%');
-      featureOverlay.style.setProperty('--overlay-oy', '50%');
-    }
-
-    featureOverlay.classList.add('story-hub-overlay--active');
-    featureOverlay.innerHTML = '';
-
-    const header = document.createElement('div');
-    header.className = 'story-hub-overlay__header';
-    header.innerHTML = `<span>${title}</span>`;
-
-    const backBtn = document.createElement('button');
-    backBtn.type = 'button';
-    backBtn.className = 'story-hub-overlay__back';
-    backBtn.textContent = '← Back';
-    backBtn.addEventListener('click', closeFeature);
-    header.appendChild(backBtn);
-
-    const area = document.createElement('div');
-    area.className = 'story-hub-overlay__area';
-
-    featureOverlay.appendChild(header);
-    featureOverlay.appendChild(area);
-    buildBody(area);
-
-    requestAnimationFrame(() => {
-      featureOverlay.classList.add('story-hub-overlay--enter');
-    });
-  }
-
-  function openGamesPicker(area) {
-    const done = getDoneGames();
-    const grid = document.createElement('div');
-    grid.className = 'games-grid';
-    GAME_REGISTRY.forEach((game) => {
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'game-card' + (done.has(game.id) ? ' game-card--done' : '');
-      card.innerHTML = `
-        <span class="game-card__emoji">${game.emoji}</span>
-        <span class="game-card__name">${game.name}</span>
-      `;
-      card.addEventListener('click', () => {
-        area.innerHTML = '';
-        const header = featureOverlay.querySelector('.story-hub-overlay__header span');
-        if (header) header.textContent = `${game.emoji} ${game.name}`;
-        analytics.track(EVENTS.GAME_OPEN, { gameId: game.id, gameName: game.name, from: 'story-hub' });
-        activeFeature = game.factory(area, {
-          analytics,
-          onComplete: (message) => {
-            markGameDone(game.id);
-            analytics.track(EVENTS.GAME_COMPLETE, { gameId: game.id, message });
-            const result = document.createElement('div');
-            result.className = 'game-result';
-            result.innerHTML = `
-              <p class="game-result__title">${message}</p>
-              <button type="button" class="btn btn--secondary">Back to games</button>
-            `;
-            result.querySelector('button')?.addEventListener('click', () => {
-              if (activeFeature) {
-                activeFeature.destroy();
-                activeFeature = null;
-              }
-              const title = featureOverlay.querySelector('.story-hub-overlay__header span');
-              if (title) title.textContent = '🎮 Mini games';
-              area.innerHTML = '';
-              openGamesPicker(area);
-            });
-            area.appendChild(result);
-          },
-        });
-        activeFeature.start();
-      });
-      grid.appendChild(card);
-    });
-    area.appendChild(grid);
-  }
-
-  function openFeature(feature, card) {
-    analytics.track(EVENTS.HUB_APP_OPEN, { appId: feature.id, from: 'story-hub' });
-
-    const appFactories = {
-      notes: createMemoryLaneApp,
-      photos: createPhotoWallApp,
-      horoscope: createHoroscopeApp,
-      questions: createAskMeAnythingApp,
-      playlist: createOurPlaylistApp,
-      movies: createMovieNightsApp,
-      diary: createDearDiaryApp,
-    };
-
-    if (feature.id === 'games') {
-      openFeatureOverlay(
-        `${feature.icon} ${feature.title}`,
-        (area) => {
-          openGamesPicker(area);
-        },
-        card
-      );
-      return;
-    }
-
-    const factory = appFactories[feature.id];
-    if (factory) {
-      openFeatureOverlay(
-        `${feature.icon} ${feature.title}`,
-        (area) => {
-          activeFeature = factory(area, { analytics });
-          activeFeature.start();
-        },
-        card
-      );
-    }
-  }
+  element.appendChild(rail);
 
   const finalText = `Hey ${CONFIG.herName} 🌙`;
   const SOFT_CHAR_DELAY = 42;
-  const lineEls = () => linesWrap.querySelectorAll('.cinematic-line');
   let savedScrollTop = 0;
   let hasVisited = false;
 
+  /** How far through the cinematic chapter she is, 0 to 1. */
   function getCinematicProgress() {
-    const greetingH = greetingSection.offsetHeight;
-    const maxScroll = scrollRoot.scrollHeight - scrollRoot.clientHeight;
-    const cinematicScrollable = maxScroll - greetingH;
-    if (cinematicScrollable <= 0) return 0;
-    return clamp((scrollRoot.scrollTop - greetingH) / cinematicScrollable);
+    const top = cinematicTrack.offsetTop;
+    const span = cinematicTrack.offsetHeight - scrollRoot.clientHeight;
+    if (span <= 0) return 0;
+    return clamp((scrollRoot.scrollTop - top) / span);
   }
+
+  /** How far through the film strip she is, 0 to 1. */
+  function getStripProgress() {
+    const top = stripTrack.offsetTop;
+    const span = stripTrack.offsetHeight - scrollRoot.clientHeight;
+    if (span <= 0) return 0;
+    return clamp((scrollRoot.scrollTop - top) / span);
+  }
+
+  const LINES_START = 0.1;
+  const LINES_END = 0.82;
 
   function applyScrollProgress() {
     const p = getCinematicProgress();
+    const beatSpan = (LINES_END - LINES_START) / Math.max(1, lineEls.length);
 
-    // Single cinematic photo — scale/parallax as text passes over it
-    const photoPhase = clamp(p / 0.38);
-    const scale = lerp(0.22, 1.08, photoPhase);
-    const photoOpacity = clamp(photoPhase * 1.4);
-    photoWrap.style.opacity = String(photoOpacity);
-    photoWrap.style.transform = `scale(${scale})`;
+    // The photo opens up as the chapter starts, then pulls back at the end.
+    const openPhase = clamp(p / 0.16);
+    const exitPhase = clamp((p - 0.86) / 0.14);
+    photoWrap.style.opacity = String(clamp(openPhase * 1.3) * (1 - exitPhase));
+    photoWrap.style.transform = `scale(${lerp(lerp(1.14, 1, openPhase), 1.1, exitPhase)})`;
+    vignette.style.opacity = String(lerp(0.3, 0.85, Math.max(exitPhase, 1 - openPhase)));
 
-    const linesStart = 0.32;
-    const linesEnd = 0.72;
-    const lineSpan = (linesEnd - linesStart) / CONFIG.cinematicLines.length;
+    lineEls.forEach(({ el, words }, i) => {
+      const start = LINES_START + i * beatSpan;
+      const local = clamp((p - start) / beatSpan);
+      // The line holds while its words light up, then eases away as the next one starts.
+      const inPhase = clamp(local / 0.55);
+      const outPhase = clamp((local - 0.88) / 0.12);
+      el.style.opacity = String(inPhase * (1 - outPhase));
+      el.style.transform = `translateY(${lerp(22, 0, inPhase) + outPhase * -14}px)`;
 
-    lineEls().forEach((line, i) => {
-      const lineStart = linesStart + i * lineSpan;
-      const lineProgress = clamp((p - lineStart) / (lineSpan * 0.85));
-      line.style.opacity = String(lineProgress);
-      line.style.transform = `translateY(${lerp(18, 0, lineProgress)}px)`;
+      words.forEach((word, w) => {
+        const at = words.length > 1 ? w / words.length : 0;
+        const lit = local > at * 0.62 + 0.04;
+        word.classList.toggle('cinematic-word--lit', lit);
+      });
+
+      // Hand the photo over as each beat takes over.
+      if (local > 0.02 && local < 1 && i !== activePhoto) {
+        photoLayers[activePhoto]?.classList.remove('cinematic-photo--active');
+        photoLayers[i]?.classList.add('cinematic-photo--active');
+        activePhoto = i;
+      }
     });
 
-    const exitPhase = clamp((p - 0.68) / 0.2);
-    photoWrap.style.opacity = String(lerp(photoOpacity, 0, exitPhase));
-    photoWrap.style.transform = `scale(${lerp(scale, 1.2, exitPhase)})`;
-    vignette.style.opacity = String(lerp(0.35, 0.85, exitPhase));
     linesWrap.style.opacity = String(1 - exitPhase);
 
-    const finalePhase = clamp((p - 0.82) / 0.18);
+    const finalePhase = clamp((p - 0.88) / 0.12);
     finale.style.opacity = String(finalePhase);
     finale.style.transform = `translateY(${lerp(24, 0, finalePhase)}px) scale(${lerp(0.96, 1, finalePhase)})`;
+
+    applyStripProgress();
+    updateRail(p);
+  }
+
+  /** Slide the film strip sideways as she scrolls down past it. */
+  function applyStripProgress() {
+    const sp = getStripProgress();
+    const travel = Math.max(0, stripRail.scrollWidth - stripSticky.clientWidth + 48);
+    stripRail.style.transform = `translate3d(${-travel * sp}px, 0, 0)`;
+    stripLabel.style.opacity = String(clamp(sp / 0.12) * (1 - clamp((sp - 0.9) / 0.1)));
+  }
+
+  /** Fill the little rail down the side so the scroll has a shape. */
+  function updateRail(cineP) {
+    const maxScroll = scrollRoot.scrollHeight - scrollRoot.clientHeight;
+    const overall = maxScroll > 0 ? clamp(scrollRoot.scrollTop / maxScroll) : 0;
+    rail.style.setProperty('--rail-fill', `${(overall * 100).toFixed(1)}%`);
+    railDots.forEach((dot, i) => {
+      const tops = [0, cinematicTrack.offsetTop, stripTrack.offsetTop, hubSection.offsetTop];
+      const next = tops[i + 1] ?? Infinity;
+      dot.classList.toggle(
+        'story-rail__dot--on',
+        scrollRoot.scrollTop >= tops[i] - 10 && scrollRoot.scrollTop < next - 10
+      );
+    });
+    void cineP;
   }
 
   function scramble(text) {
@@ -453,12 +348,12 @@ export function createScrollStoryScreen({ manager, analytics }) {
     lc.trackInterval(interval);
   }
 
-  function goToBigAsk() {
-    analytics.track(EVENTS.MANUAL_CONTINUE, { from: SCREENS.SCROLL_STORY, to: SCREENS.BIG_ASK });
-    manager.goTo(SCREENS.BIG_ASK);
+  function goToExplore() {
+    analytics.track(EVENTS.MANUAL_CONTINUE, { from: SCREENS.SCROLL_STORY, to: SCREENS.EXPLORE });
+    manager.goTo(SCREENS.EXPLORE);
   }
 
-  lc.bindListener(hubContinue, 'click', goToBigAsk);
+  lc.bindListener(hubContinue, 'click', goToExplore);
 
   let rafId = null;
   /** @type {import('lenis').default | null} */
@@ -536,7 +431,6 @@ export function createScrollStoryScreen({ manager, analytics }) {
     },
     onExit() {
       savedScrollTop = scrollRoot.scrollTop;
-      closeFeature();
       destroyLenis();
       lc.reset();
       if (rafId) cancelAnimationFrame(rafId);

@@ -2,6 +2,7 @@ import { CONFIG } from '../../config.js';
 import { EVENTS } from '../../constants/eventTypes.js';
 import { hubApi } from '../api.js';
 import { debounce } from '../../utils/async.js';
+import { escapeHtml } from '../../utils/dom.js';
 
 const STARS = [1, 2, 3, 4, 5];
 const SEARCH_DEBOUNCE_MS = 300;
@@ -26,21 +27,21 @@ export function createMovieNightsApp(container, { analytics }) {
         <input type="text" class="movie-add-form__note" placeholder="${CONFIG.movieAddNotePlaceholder}" />
         <button type="submit" class="btn btn--primary movie-add-form__submit">${CONFIG.movieAddSubmit}</button>
       </form>
+      <div class="movie-spin">
+        <button type="button" class="btn btn--secondary movie-spin__btn" data-role="spin">${CONFIG.movieSpinBtn}</button>
+        <p class="movie-spin__result" data-role="spin-result" hidden></p>
+      </div>
       <div class="movie-grid" data-role="list"><p class="hub-loading">Loading…</p></div>
     </div>
   `;
 
   const list = container.querySelector('[data-role="list"]');
+  const spinBtn = container.querySelector('[data-role="spin"]');
+  const spinResult = container.querySelector('[data-role="spin-result"]');
   const affinityEl = container.querySelector('[data-role="affinity"]');
   const addForm = container.querySelector('[data-role="add-form"]');
   const searchInput = container.querySelector('.movie-search__input');
   const searchResults = container.querySelector('[data-role="search-results"]');
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str ?? '';
-    return div.innerHTML;
-  }
 
   function ratingFor(movie, rater) {
     return movie.ratings?.find((r) => r.rater === rater) ?? null;
@@ -87,7 +88,7 @@ export function createMovieNightsApp(container, { analytics }) {
     }
     return `
       <div class="movie-poster__placeholder">
-        <span class="movie-poster__emoji">${movie.poster_emoji || '🎬'}</span>
+        <span class="movie-poster__emoji">${escapeHtml(movie.poster_emoji || '🎬')}</span>
         <span class="movie-poster__placeholder-label">No poster yet</span>
       </div>
     `;
@@ -108,6 +109,7 @@ export function createMovieNightsApp(container, { analytics }) {
     ]
       .filter(Boolean)
       .join(' ');
+    card.dataset.id = String(movie.id);
 
     card.innerHTML = `
       <div class="movie-poster__frame">
@@ -284,6 +286,49 @@ export function createMovieNightsApp(container, { analytics }) {
       submitBtn.disabled = false;
     }
   });
+
+  /** Roll through the watchlist for a second, then land on tonight's film. */
+  function spinForTonight() {
+    if (!movies.length || spinBtn.disabled) return;
+    spinBtn.disabled = true;
+    spinResult.hidden = false;
+    spinResult.classList.remove('movie-spin__result--landed');
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const pick = movies[Math.floor(Math.random() * movies.length)];
+
+    const land = () => {
+      spinResult.textContent = `${CONFIG.movieSpinPrefix} ${pick.title}`;
+      spinResult.classList.add('movie-spin__result--landed');
+      spinBtn.disabled = false;
+      analytics.track(EVENTS.MOVIE_SPIN, { title: pick.title });
+      container
+        .querySelector(`.movie-poster[data-id="${pick.id}"]`)
+        ?.classList.add('movie-poster--picked');
+    };
+
+    container
+      .querySelectorAll('.movie-poster--picked')
+      .forEach((el) => el.classList.remove('movie-poster--picked'));
+
+    if (reduce) {
+      land();
+      return;
+    }
+
+    let ticks = 0;
+    const roll = setInterval(() => {
+      const passing = movies[Math.floor(Math.random() * movies.length)];
+      spinResult.textContent = passing.title;
+      ticks += 1;
+      if (ticks > 14) {
+        clearInterval(roll);
+        land();
+      }
+    }, 70);
+  }
+
+  spinBtn.addEventListener('click', spinForTonight);
 
   return {
     start() {

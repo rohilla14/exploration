@@ -35,3 +35,35 @@ export function createScreenRoot(id, modifierClass) {
   element.dataset.screenId = id;
   return element;
 }
+
+/**
+ * Escape text for safe interpolation into HTML (text nodes and quoted attributes).
+ * @param {unknown} value
+ * @returns {string}
+ */
+export function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Title bar for the desktop-style windows (traffic-light dots + a title).
+ * @param {string} title
+ * @returns {HTMLElement}
+ */
+export function windowBar(title) {
+  const bar = el('header', 'win__bar');
+  bar.innerHTML = `
+    <span class="win__dots" aria-hidden="true">
+      <span class="win__dot win__dot--close"></span>
+      <span class="win__dot win__dot--min"></span>
+      <span class="win__dot win__dot--max"></span>
+    </span>
+    <span class="win__title">${escapeHtml(title)}</span>
+  `;
+  return bar;
+}

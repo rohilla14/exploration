@@ -1,4 +1,5 @@
 import { hubApi } from '../api.js';
+import { escapeHtml } from '../../utils/dom.js';
 
 /** @param {HTMLElement} container @param {{ analytics: import('../../analytics/Analytics.js').Analytics }} _ctx */
 export function createHoroscopeApp(container, { analytics: _analytics }) {
@@ -15,12 +16,6 @@ export function createHoroscopeApp(container, { analytics: _analytics }) {
   `;
 
   const root = container.querySelector('[data-role="root"]');
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str ?? '';
-    return div.innerHTML;
-  }
 
   function formatDateLabel(iso) {
     if (!iso) return '';
@@ -42,7 +37,7 @@ export function createHoroscopeApp(container, { analytics: _analytics }) {
       <p class="horoscope__date">Today</p>
       <section class="horoscope__section">
         <h3 class="horoscope__label">Today, for you</h3>
-        <p class="horoscope__text">The day is quieter than it looks from the outside. Something soft is already on your side — you do not need to chase it. Let the next few hours be gentle with you.</p>
+        <p class="horoscope__text">The day is quieter than it looks from the outside. Something soft is already on your side, you do not need to chase it. Let the next few hours be gentle with you.</p>
       </section>
       <section class="horoscope__section horoscope__section--us">
         <h3 class="horoscope__label">Today, for us</h3>

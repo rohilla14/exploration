@@ -1,3 +1,15 @@
+import { CONFIG } from '../config.js';
+
+/**
+ * Where to anchor a photo when it is cropped to fill a box (CSS background-position / object-position).
+ * Every photo has its face position listed in CONFIG.photoFocus so faces never get cropped out.
+ * @param {string} src
+ * @param {string} [fallback]
+ */
+export function focusOf(src, fallback = '50% 35%') {
+  return CONFIG.photoFocus?.[src] ?? fallback;
+}
+
 /** Probe whether an image exists before showing it (graceful hide if missing). */
 export function loadImage(src) {
   return new Promise((resolve) => {
@@ -19,7 +31,7 @@ export async function applyBackgroundPhoto(el, src, fit = 'cover') {
   el.classList.remove('photo-slot--empty');
   el.style.backgroundImage = `url(${src})`;
   el.style.backgroundSize = fit;
-  el.style.backgroundPosition = 'center';
+  el.style.backgroundPosition = focusOf(src, 'center');
   el.textContent = '';
   return true;
 }
@@ -30,7 +42,7 @@ export async function applyCoverBackground(el, src) {
   el.classList.remove('photo-slot--empty');
   el.style.backgroundImage = `url(${src})`;
   el.style.backgroundSize = 'cover';
-  el.style.backgroundPosition = 'center';
+  el.style.backgroundPosition = focusOf(src, 'center');
   el.textContent = '';
   return true;
 }

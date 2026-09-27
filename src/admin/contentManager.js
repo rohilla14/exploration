@@ -1,4 +1,5 @@
 import { hubApi } from '../hub/api.js';
+import { escapeHtml } from '../utils/dom.js';
 
 const TABS = [
   { id: 'notes', label: 'Memory Notes' },
@@ -11,12 +12,6 @@ const TABS = [
 let activeTab = 'notes';
 /** @type {HTMLElement | null} */
 let panelEl = null;
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str ?? '';
-  return div.innerHTML;
-}
 
 function fmtTime(iso) {
   if (!iso) return '';
@@ -68,7 +63,7 @@ function renderActiveTab() {
   };
 
   renderers[activeTab]?.().catch((err) => {
-    if (panelEl) panelEl.innerHTML = `<div class="admin__error">Couldn't load: ${err.message}</div>`;
+    if (panelEl) panelEl.innerHTML = `<div class="admin__error">Couldn't load: ${escapeHtml(err.message)}</div>`;
   });
 }
 

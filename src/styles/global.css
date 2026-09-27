@@ -30,7 +30,10 @@ body {
 
 .ambient__mesh {
   position: absolute;
-  inset: 0;
+  inset: -3%;
+  translate: var(--par-x, 0) var(--par-y, 0);
+  transition: translate 0.5s cubic-bezier(0.2, 0, 0.2, 1);
+  animation: meshBreathe 46s ease-in-out infinite;
   background:
     radial-gradient(ellipse 75% 55% at 15% 8%, rgba(184, 216, 236, 0.42), transparent 55%),
     radial-gradient(ellipse 65% 48% at 88% 15%, rgba(245, 198, 168, 0.35), transparent 50%),
@@ -40,6 +43,7 @@ body {
 
 .ambient__blob {
   position: absolute;
+  translate: calc(var(--par-x, 0px) * 2.2) calc(var(--par-y, 0px) * 2.2);
   border-radius: 50%;
   filter: blur(60px);
   opacity: 0.55;
@@ -74,8 +78,9 @@ body {
 
 .ambient__grain {
   position: absolute;
-  inset: 0;
-  opacity: 0.04;
+  inset: -40px;
+  opacity: 0.1;
+  animation: grainDrift 5s steps(6) infinite;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -316,9 +321,7 @@ body {
 .screen--hub > .hub__inner,
 .screen--hub > .screen__inner,
 .screen--cinematic > .cinematic-scroll,
-.screen--planner > .planner-layout,
-.screen--planner > .planner-welcome,
-.screen--planner > .planner-lockin {
+.screen--planner > .planner-layout {
   position: relative;
   z-index: 1;
 }
@@ -367,6 +370,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  /* 'safe' keeps tall content reachable: it top-aligns instead of clipping above the viewport. */
+  justify-content: safe center;
   padding: 2rem 1.5rem;
   opacity: 0;
   transform: translateY(20px);
@@ -747,5 +752,108 @@ body {
   .btn {
     padding: 0.75rem 1.25rem;
     font-size: 0.9rem;
+  }
+}
+
+/* ============================================================
+   Ambient background: grain, drifting specks, a slow breath,
+   and a tint that follows the time of day.
+   ============================================================ */
+
+@keyframes grainDrift {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-6px, 4px); }
+  40% { transform: translate(5px, -7px); }
+  60% { transform: translate(-4px, -3px); }
+  80% { transform: translate(7px, 5px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* The gradient shifts hue very slowly, so it is never quite the same twice. */
+@keyframes meshBreathe {
+  0%, 100% { filter: hue-rotate(0deg) saturate(1); }
+  50% { filter: hue-rotate(8deg) saturate(1.08); }
+}
+
+.ambient__specks {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.ambient__speck {
+  position: absolute;
+  left: var(--x);
+  bottom: -10px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
+  opacity: 0;
+  animation: speckRise var(--dur) linear var(--delay) infinite;
+}
+
+@keyframes speckRise {
+  0% { opacity: 0; transform: translate(0, 0); }
+  12% { opacity: 0.55; }
+  88% { opacity: 0.35; }
+  100% { opacity: 0; transform: translate(var(--drift), -105vh); }
+}
+
+/* ---------- time of day ---------- */
+
+.ambient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* above the mesh, blobs and specks, which are real children and would cover it */
+  z-index: 2;
+  pointer-events: none;
+  transition: background 1.6s ease;
+}
+
+body[data-daypart='morning'] .ambient::before {
+  background: linear-gradient(170deg, rgba(255, 206, 122, 0.3), rgba(255, 236, 200, 0.12) 65%);
+}
+
+body[data-daypart='day'] .ambient::before {
+  background: linear-gradient(170deg, rgba(198, 230, 255, 0.16), rgba(255, 255, 255, 0.05) 70%);
+}
+
+body[data-daypart='sunset'] .ambient::before {
+  background: linear-gradient(170deg, rgba(255, 145, 80, 0.32), rgba(255, 120, 150, 0.22) 50%, rgba(110, 80, 140, 0.26));
+}
+
+body[data-daypart='night'] .ambient::before {
+  background: linear-gradient(170deg, rgba(42, 48, 110, 0.48), rgba(18, 20, 48, 0.42) 60%);
+}
+
+/* Night also calms the specks down and warms the type slightly. */
+body[data-daypart='night'] .ambient__speck {
+  background: rgba(220, 230, 255, 0.9);
+}
+
+/* ---------- per screen moods ---------- */
+
+.screen--bigask ~ .ambient,
+body:has(.screen--bigask.screen--active) .ambient__mesh {
+  filter: saturate(1.12) brightness(1.03);
+}
+
+body:has(.screen--planner.screen--active) .ambient__mesh,
+body:has(.screen--bouquet.screen--active) .ambient__mesh {
+  filter: saturate(1.05) brightness(1.05);
+}
+
+body:has(.screen--cinematic.screen--active) .ambient__mesh {
+  filter: saturate(0.92) brightness(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient__grain,
+  .ambient__mesh,
+  .ambient__speck {
+    animation: none;
   }
 }

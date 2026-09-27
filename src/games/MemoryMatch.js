@@ -94,7 +94,7 @@ export function createMemoryMatchGame(container, { analytics, onComplete }) {
         locked = false;
         if (matched >= pairs.length) {
           playChime();
-          setTimeout(() => onComplete(`Memory of Us — ${moves} moves`), 600);
+          setTimeout(() => onComplete(`Memory of Us in ${moves} moves`), 600);
         }
       } else {
         streak = 0;

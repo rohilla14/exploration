@@ -321,25 +321,25 @@ export function createCaseOfUsGame(container, { analytics, onComplete }) {
       <div class="case-accuse__card" role="dialog" aria-labelledby="case-accuse-title">
         <p class="case-accuse__eyebrow">The accusation</p>
         <h3 id="case-accuse-title" class="case-accuse__title">Name the date</h3>
-        <p class="case-accuse__hint">Choose where, when, and what. No second chances on the reveal — only on the verdict.</p>
+        <p class="case-accuse__hint">Choose where, when, and what. No second chances on the reveal. Only on the verdict.</p>
         <label class="case-accuse__field">
           <span>Where</span>
           <select data-role="where">
-            <option value="">—</option>
+            <option value="">Choose</option>
             ${categories.where.map((o) => `<option value="${o.id}">${o.label}</option>`).join('')}
           </select>
         </label>
         <label class="case-accuse__field">
           <span>When</span>
           <select data-role="when">
-            <option value="">—</option>
+            <option value="">Choose</option>
             ${categories.when.map((o) => `<option value="${o.id}">${o.label}</option>`).join('')}
           </select>
         </label>
         <label class="case-accuse__field">
           <span>What</span>
           <select data-role="what">
-            <option value="">—</option>
+            <option value="">Choose</option>
             ${categories.what.map((o) => `<option value="${o.id}">${o.label}</option>`).join('')}
           </select>
         </label>
@@ -385,7 +385,7 @@ export function createCaseOfUsGame(container, { analytics, onComplete }) {
       if (!correct) {
         if (error) {
           error.hidden = false;
-          error.textContent = 'Not quite. The case is still open — try another angle.';
+          error.textContent = 'Not quite. The case is still open, try another angle.';
         }
         return;
       }
@@ -427,7 +427,7 @@ export function createCaseOfUsGame(container, { analytics, onComplete }) {
       <header class="case-of-us__header">
         <p class="case-of-us__eyebrow">Case file</p>
         <h3 class="case-of-us__title">The Case of Us</h3>
-        <p class="case-of-us__brief">A date is being planned. Deduce <em>where</em>, <em>when</em>, and <em>what</em> from the clues. Mark your notepad — nothing fills itself in.</p>
+        <p class="case-of-us__brief">A date is being planned. Deduce <em>where</em>, <em>when</em>, and <em>what</em> from the clues. Mark your notepad, nothing fills itself in.</p>
       </header>
       <div class="case-of-us__layout">
         <aside class="case-of-us__clues">

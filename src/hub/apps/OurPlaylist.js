@@ -1,6 +1,8 @@
 import { CONFIG } from '../../config.js';
 import { EVENTS } from '../../constants/eventTypes.js';
 import { hubApi } from '../api.js';
+import { escapeHtml } from '../../utils/dom.js';
+import { play as playNowPlaying, playingId, stop as stopNowPlaying } from '../../core/NowPlaying.js';
 
 const SEARCH_DEBOUNCE_MS = 450;
 const STAGGER_MS = 60;
@@ -27,6 +29,7 @@ export function createOurPlaylistApp(container, { analytics }) {
       <form class="playlist-note-form" data-role="note-form" hidden>
         <p class="playlist-note-form__track" data-role="pending-label"></p>
         <input type="text" class="playlist-note-form__input" placeholder="${CONFIG.playlistNotePlaceholder}" />
+        <input type="text" class="playlist-note-form__input" data-role="yt" placeholder="${CONFIG.playlistYoutubePlaceholder}" />
         <div class="playlist-note-form__actions">
           <button type="submit" class="btn btn--primary">${CONFIG.playlistAddWithNote}</button>
           <button type="button" class="btn btn--secondary" data-role="skip-note">${CONFIG.playlistSkipNote}</button>
@@ -37,6 +40,7 @@ export function createOurPlaylistApp(container, { analytics }) {
         <button type="button" class="playlist-filter playlist-filter--active" data-filter="all">All</button>
         <button type="button" class="playlist-filter" data-filter="her">From her</button>
         <button type="button" class="playlist-filter" data-filter="you">From you</button>
+        <button type="button" class="playlist-shuffle" data-role="shuffle">${CONFIG.playlistShuffle}</button>
       </div>
 
       <details class="playlist-bulk">
@@ -72,12 +76,6 @@ export function createOurPlaylistApp(container, { analytics }) {
       renderSongList();
     });
   });
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str ?? '';
-    return div.innerHTML;
-  }
 
   function renderSearchResults(results, errorMessage) {
     if (errorMessage) {
@@ -115,7 +113,7 @@ export function createOurPlaylistApp(container, { analytics }) {
 
   function beginAdd(track) {
     pendingTrack = track;
-    pendingLabel.textContent = `${track.title} — ${track.artist}`;
+    pendingLabel.textContent = `${track.title} · ${track.artist}`;
     noteInput.value = '';
     noteForm.hidden = false;
     renderSearchResults([]);
@@ -123,7 +121,7 @@ export function createOurPlaylistApp(container, { analytics }) {
     noteInput.focus();
   }
 
-  async function commitAdd(note) {
+  async function commitAdd(note, youtubeId) {
     if (!pendingTrack) return;
     const track = pendingTrack;
     pendingTrack = null;
@@ -138,6 +136,7 @@ export function createOurPlaylistApp(container, { analytics }) {
         previewUrl: track.previewUrl,
         addedBy: 'her',
         note: note || null,
+        youtubeId: youtubeId || null,
       });
       if (destroyed) return;
       analytics.track(EVENTS.SONG_ADDED, { title: song.title, artist: song.artist });
@@ -149,9 +148,17 @@ export function createOurPlaylistApp(container, { analytics }) {
     }
   }
 
+  container.querySelector('[data-role="shuffle"]')?.addEventListener('click', shuffleOurs);
+
   noteForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    commitAdd(noteInput.value.trim());
+    const noteInput = noteForm.querySelector('.playlist-note-form__input');
+    const ytInput = noteForm.querySelector('[data-role="yt"]');
+    const note = noteInput.value.trim();
+    const yt = ytInput.value.trim();
+    noteInput.value = '';
+    ytInput.value = '';
+    commitAdd(note, yt);
   });
 
   noteForm.querySelector('[data-role="skip-note"]')?.addEventListener('click', () => {
@@ -169,6 +176,34 @@ export function createOurPlaylistApp(container, { analytics }) {
       return `<img class="playlist-song__art" src="${escapeHtml(song.album_art)}" alt="" loading="lazy" />`;
     }
     return `<span class="playlist-song__art playlist-song__art--placeholder" aria-hidden="true">🎵</span>`;
+  }
+
+  /** Pick a random song from the list and open its player. */
+  /** Start or stop a song in the bar that lives outside the window. */
+  function toggleSong(song) {
+    if (playingId() === song.id) {
+      stopNowPlaying();
+      activeSongId = null;
+    } else if (playNowPlaying(song)) {
+      activeSongId = song.id;
+      analytics.track(EVENTS.SONG_PLAY, { title: song.title, from: 'list' });
+    } else {
+      activeSongId = song.id;
+    }
+    renderSongList();
+  }
+
+  function shuffleOurs() {
+    const pool = filteredSongs().filter((song) => song.youtube_id || song.spotify_id);
+    if (!pool.length) return;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    playNowPlaying(pick);
+    activeSongId = pick.id;
+    analytics.track(EVENTS.SONG_PLAY, { title: pick.title, from: 'shuffle' });
+    renderSongList();
+    container
+      .querySelector(`.playlist-song[data-id="${pick.id}"]`)
+      ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
 
   function renderSongList() {
@@ -196,7 +231,7 @@ export function createOurPlaylistApp(container, { analytics }) {
                  data-id="${s.id}"
                  style="--stagger: ${i * STAGGER_MS}ms;">
           <button type="button" class="playlist-song__hit" data-role="toggle" aria-expanded="${isActive}" ${
-            s.spotify_id ? '' : 'disabled'
+            ''
           }>
             <span class="playlist-song__art-wrap">
               ${artMarkup(s)}
@@ -209,22 +244,12 @@ export function createOurPlaylistApp(container, { analytics }) {
               <span class="playlist-song__added">${escapeHtml(addedLabel)}</span>
             </span>
             ${
-              s.spotify_id
+              s.youtube_id || s.spotify_id
                 ? `<span class="playlist-song__cue">${isActive ? 'Hide player' : 'Play'}</span>`
                 : ''
             }
           </button>
-          ${
-            isActive && s.spotify_id
-              ? `<div class="playlist-song__player">
-                   <iframe class="playlist-song__embed"
-                           src="https://open.spotify.com/embed/track/${escapeHtml(s.spotify_id)}?utm_source=generator"
-                           title="${escapeHtml(s.title)}"
-                           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                           loading="lazy"></iframe>
-                 </div>`
-              : ''
-          }
+          ${isActive && !(s.youtube_id || s.spotify_id) ? `<p class="playlist-song__noplayer">${escapeHtml(CONFIG.playlistNoPlayer)}</p>` : ''}
         </article>
       `;
       })
@@ -234,8 +259,8 @@ export function createOurPlaylistApp(container, { analytics }) {
       btn.addEventListener('click', () => {
         const id = btn.closest('.playlist-song')?.dataset.id;
         if (!id) return;
-        activeSongId = String(activeSongId) === String(id) ? null : id;
-        renderSongList();
+        const song = songs.find((x) => String(x.id) === String(id));
+        if (song) toggleSong(song);
       });
     });
   }

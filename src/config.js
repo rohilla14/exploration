@@ -1,48 +1,151 @@
 // ============================================================
-// CUSTOMIZE HERE — swap placeholder content before sharing
+// CUSTOMIZE HERE, swap placeholder content before sharing
 // ============================================================
 //
 // 📷 YOUR PHOTOS (in public/assets/)
 //
-//   photo.jpeg                                      → cinematic scroll + photos wall
-//   cinematic-2.jpg / cinematic-3.jpg               → greeting polaroids
-//   loading-bg.jpg                                  → loading backdrop
-//   why-i-made-this.jpg                             → Why I Made This hub app
-//   cacb8ec6-…jpg                                   → planner welcome
-//   245eedf8-…jpg                                   → celebration
+//   Every photo is listed once in `gallery` below (captions show in the Photos app and the
+//   desktop photo frame). The named slots in `photos` pick which ones headline each screen.
+//   Keep files under ~1600px on the long edge.
 //
 // ============================================================
 
 export const CONFIG = {
   herName: 'Rhea',
 
+  // false: every visit starts at the Setup Screen (use this while you are building and testing).
+  // true: once she has seen the whole journey, later visits open straight on the desktop.
+  // Switch it to true before you send her the link.
+  returnVisitorsSkipToDesktop: false,
+
   loadingText: 'Psst… unwrapping something for you.',
+  loadingSteps: [
+    'Unpacking the good memories…',
+    'Tuning our songs…',
+    'Folding in small moments…',
+    'Picking out flowers…',
+    'Saving you a seat…',
+  ],
+  loadingDone: 'All set. Ready when you are.',
 
-  loadingPhoto: '/assets/loading-bg.jpg',
+  loadingPhoto: '/assets/us-mirror.jpg',
 
-  photos: {
-    cinematic: '/assets/photo.jpeg',
-    polaroidA: '/assets/cinematic-2.jpg',
-    polaroidB: '/assets/cinematic-3.jpg',
-    plannerAccent: '/assets/cacb8ec6-cba6-4214-9f62-0759952ade21.jpg',
-    plannerWelcome: '/assets/cacb8ec6-cba6-4214-9f62-0759952ade21.jpg',
-    celebration: '/assets/245eedf8-8997-4501-b6c9-a70cd89b94e1.jpg',
+  // Hub wallpaper: a photo of her only. Moving the cursor over the desktop opens a soft "lens"
+  // that swaps that part of the picture for another photo, while her face stays untouched.
+  hubWallpaper: {
+    photo: '/assets/gate-portrait.jpg',
+    // Which part of a tall photo stays visible on a wide screen (0 = top, 1 = bottom).
+    posY: 0.33,
+    // Where her face is, as fractions of the photo (centre + radii). The lens never covers it.
+    face: { cx: 0.55, cy: 0.33, rx: 0.22, ry: 0.15 },
+    // The screen is split into a 4 x 3 grid, so every photo in the gallery gets its own region.
+    // Order runs left to right, top row first. fx and fy are where the faces sit in that photo
+    // (0 to 1) and the lens keeps that point centred. zoom sets how close in: 1 shows the whole
+    // width, 2 shows half of it. The wallpaper photo itself is the only one not repeated here.
+    cols: 4,
+    rows: 3,
+    reveals: [
+      { src: '/assets/stairs.jpg', fx: 0.62, fy: 0.2, zoom: 2.2 },
+      { src: '/assets/birthday-cake.jpg', fx: 0.49, fy: 0.28, zoom: 2 },
+      { src: '/assets/us-dinner.jpg', fx: 0.53, fy: 0.34, zoom: 2.4 },
+      { src: '/assets/pomegranate-mirror.jpg', fx: 0.48, fy: 0.45, zoom: 2.2 },
+      { src: '/assets/candid-call.jpg', fx: 0.5, fy: 0.4, zoom: 2.2 },
+      { src: '/assets/mirror-lilies.jpg', fx: 0.57, fy: 0.4, zoom: 2 },
+      { src: '/assets/plant-cafe.jpg', fx: 0.57, fy: 0.36, zoom: 1.7 },
+      { src: '/assets/car-ride.jpg', fx: 0.36, fy: 0.45, zoom: 2.4 },
+      { src: '/assets/pomegranate-pout.jpg', fx: 0.42, fy: 0.4, zoom: 2 },
+      { src: '/assets/close-up.jpg', fx: 0.52, fy: 0.45, zoom: 1 },
+      { src: '/assets/us-mirror.jpg', fx: 0.53, fy: 0.42, zoom: 2.3 },
+      { src: '/assets/mirror-terrace.jpg', fx: 0.36, fy: 0.41, zoom: 3.4 },
+    ],
+    // Lens-only page after the story: her photo, nothing else, so she can explore it.
+    exploreHint: 'Move your cursor around. Something is hiding in the picture.',
+    enterLabel: 'Come on in →',
   },
 
-  greetingSoftLine:
-    "You make ordinary days feel like something worth remembering. Take your time here — there's more to find.",
+  // Where the face is in each photo (x% y%), so any crop keeps her face in view.
+  photoFocus: {
+    '/assets/us-dinner.jpg': '50% 30%',
+    '/assets/us-mirror.jpg': '50% 42%',
+    '/assets/mirror-terrace.jpg': '50% 44%',
+    '/assets/stairs.jpg': '50% 20%',
+    '/assets/birthday-cake.jpg': '50% 27%',
+    '/assets/gate-portrait.jpg': '55% 33%',
+    '/assets/pomegranate-mirror.jpg': '50% 45%',
+    '/assets/pomegranate-pout.jpg': '50% 36%',
+    '/assets/plant-cafe.jpg': '50% 40%',
+    '/assets/mirror-lilies.jpg': '50% 38%',
+    '/assets/car-ride.jpg': '20% 40%',
+    '/assets/close-up.jpg': '50% 45%',
+    '/assets/candid-call.jpg': '45% 42%',
+  },
 
-  cinematicLines: [
-    'Some days feel ordinary',
-    'until someone makes them feel special.',
-    'I notice the small things,',
-    'a laugh, a look, a room feeling warmer.',
-    'So I built this, like a present you open one scroll at a time.',
+  photos: {
+    // Two small photos that settle in beside the greeting when the story opens.
+    polaroidA: '/assets/mirror-terrace.jpg',
+    polaroidB: '/assets/stairs.jpg',
+    // "Some days feel ordinary…" in the scroll story: only the dinner photo of the two of you
+    cinematicCycle: ['/assets/us-dinner.jpg'],
+    // setup wizard side panel
+    loadingCollage: [
+      '/assets/close-up.jpg',
+      '/assets/pomegranate-pout.jpg',
+      '/assets/candid-call.jpg',
+    ],
+    plannerAccent: '/assets/birthday-cake.jpg',
+    plannerWelcome: '/assets/birthday-cake.jpg',
+    celebration: '/assets/pomegranate-mirror.jpg',
+  },
+
+  // All photos: Photos app, desktop photo frame. Edit captions freely.
+  gallery: [
+    { src: '/assets/us-dinner.jpg', caption: 'Us, dinner glow' },
+    { src: '/assets/us-mirror.jpg', caption: 'Two of us, one mirror' },
+    { src: '/assets/mirror-terrace.jpg', caption: 'That terrace' },
+    { src: '/assets/stairs.jpg', caption: 'Climbing toward something good' },
+    { src: '/assets/birthday-cake.jpg', caption: 'Cake first' },
+    { src: '/assets/gate-portrait.jpg', caption: 'The red gate' },
+    { src: '/assets/pomegranate-mirror.jpg', caption: 'Pomegranate walls' },
+    { src: '/assets/pomegranate-pout.jpg', caption: 'The pout' },
+    { src: '/assets/plant-cafe.jpg', caption: 'Plant café' },
+    { src: '/assets/mirror-lilies.jpg', caption: 'Lilies in the mirror' },
+    { src: '/assets/car-ride.jpg', caption: 'Back seat energy' },
+    { src: '/assets/close-up.jpg', caption: 'Up close' },
+    { src: '/assets/candid-call.jpg', caption: 'Mid sentence' },
+  ],
+
+  greetingSoftLine:
+    "You make ordinary days feel like something worth remembering. Take your time here, there's more to find.",
+
+  // Story beats. Each line gets its own framing, so the photo moves like a camera as she scrolls.
+  // Only photos of the two of you belong here. focus is where the crop sits (x% y%).
+  storyBeats: [
+    { line: 'Some days feel ordinary', photo: '/assets/us-dinner.jpg', focus: '50% 30%' },
+    {
+      line: 'until someone makes them feel special.',
+      photo: '/assets/us-dinner.jpg',
+      focus: '64% 30%',
+    },
+    { line: 'I notice the small things,', photo: '/assets/us-mirror.jpg', focus: '50% 40%' },
+    {
+      line: 'a laugh, a look, a room feeling warmer.',
+      photo: '/assets/us-mirror.jpg',
+      focus: '60% 36%',
+    },
+    {
+      line: 'So I built this, like a present you open one scroll at a time.',
+      photo: '/assets/us-dinner.jpg',
+      focus: '50% 26%',
+    },
   ],
   cinematicFinale: 'Welcome to your present. 🎁',
 
+  // The film strip chapter: scrolls sideways while she scrolls down.
+  storyStripLabel: 'and every version of you I have kept',
+  storyStripEnd: 'Keep going.',
+
   hubIntro:
-    "Games, notes, questions, our songs, movie nights, and a diary — tap any card. When you're ready, the surprise is waiting.",
+    "Games, notes, questions, our songs, movie nights, and a diary, tap any card. When you're ready, the surprise is waiting.",
   hubFeatures: [
     {
       id: 'games',
@@ -72,7 +175,7 @@ export const CONFIG = {
       id: 'questions',
       icon: '💭',
       title: 'Deep Dive',
-      description: 'Answer first — then see what I said.',
+      description: 'Answer first, then see what I said.',
     },
     {
       id: 'playlist',
@@ -102,22 +205,20 @@ export const CONFIG = {
   plannerWelcomeTitle: "I haven't stopped smiling.",
   plannerWelcomeSub: "Pick a day, a time, a plan. I'll show up for all three.",
   plannerWelcomeBtn: "Let's build the day →",
-  plannerPaletteTitle: 'Build our day',
-  plannerActivityPrompt: 'Set the mood, then start adding stops.',
-  plannerItineraryHint: 'Tap to add · drag to reorder',
-  plannerSlotHints: [
-    'Start with a day →',
-    'Then a time — pick a preset, or set it yourself →',
-    'Set the mood, then add your stops →',
-    'Like the plan? Make it official →',
-  ],
-  plannerSteps: ['Day', 'Time', 'The plan', 'Official'],
-  plannerWhenChipLabel: 'When',
-  plannerConfirmBtn: 'Lock it in!',
-  plannerLockInTitle: 'Make it official',
-  plannerLockInPrompt: 'Type "sure, let\'s go" to make it real',
-  plannerLockInPlaceholder: "sure, let's go",
-  plannerLockInError: 'Not quite — type exactly: sure, let\'s go',
+  plannerWindowTitle: 'plan our day.app',
+  plannerAskDay: 'Pick a day. Any day you like.',
+  plannerAskTime: 'What time suits you?',
+  plannerAskVibe: 'What kind of day are we having?',
+  plannerAskStops: 'Pick up to three stops. Tap to add or remove.',
+  plannerCustomTimeLabel: 'Or set your own time',
+  plannerNextLabel: 'Next →',
+  plannerConfirmBtn: 'Lock it in',
+  plannerTicketBrand: 'One day, the two of us',
+  plannerTicketSeat: 'Seat: next to me',
+  plannerTicketEmptyDay: 'not picked yet',
+  plannerTicketEmptyTime: 'not picked yet',
+  plannerTicketEmptyPlan: 'Nothing added yet. Pick a vibe, then a stop.',
+  plannerStampText: 'Confirmed. I will be there.',
   plannerTimePresets: [
     { label: 'Afternoon', hour: '3', minute: '00', ampm: 'PM' },
     { label: 'Evening', hour: '7', minute: '00', ampm: 'PM' },
@@ -126,11 +227,26 @@ export const CONFIG = {
   plannerDateReveal: "It's really happening.",
 
   dateMoods: [
-    { id: 'coffee', emoji: '☕', label: 'Coffee date', tagline: 'Good coffee, better conversation' },
+    {
+      id: 'coffee',
+      emoji: '☕',
+      label: 'Coffee date',
+      tagline: 'Good coffee, better conversation',
+    },
     { id: 'dinner', emoji: '🍽️', label: 'Dinner out', tagline: 'Sit down and stay awhile' },
     { id: 'outdoors', emoji: '🌿', label: 'Outdoors', tagline: 'Fresh air and a slow walk' },
-    { id: 'dessert', emoji: '🍰', label: 'Dessert run', tagline: 'Something sweet, no occasion needed' },
-    { id: 'explore', emoji: '🚶', label: 'Explore Delhi', tagline: 'Pick a neighbourhood, get a little lost' },
+    {
+      id: 'dessert',
+      emoji: '🍰',
+      label: 'Dessert run',
+      tagline: 'Something sweet, no occasion needed',
+    },
+    {
+      id: 'explore',
+      emoji: '🚶',
+      label: 'Explore Delhi',
+      tagline: 'Pick a neighbourhood, get a little lost',
+    },
   ],
 
   moodImages: {
@@ -141,52 +257,64 @@ export const CONFIG = {
     explore: '/assets/moods/explore.jpg',
   },
 
+  // Stops offered for each vibe. name is what lands on the ticket, note is the little line under it.
   datePlaces: {
     coffee: [
-      'Diggin, Chanakyapuri',
-      'Blue Tokai, Saket',
-      'Mia Bella, Hauz Khas Village',
-      'The Grammar Room, Mehrauli',
+      {
+        name: 'Blue Tokai, Champa Gali',
+        note: 'Tucked down an art lane. Slow mornings, good beans.',
+      },
+      { name: 'Diggin, Chanakyapuri', note: 'Ivy on the walls, fairy lights, tables outside.' },
+      { name: 'Cafe Dori, Chhatarpur', note: 'Airy and quiet. Built for long conversations.' },
+      { name: 'Mia Bella, Hauz Khas Village', note: 'Terrace table with the lake below.' },
     ],
     dinner: [
-      'Indian Accent, The Lodhi',
-      'Olive Bar & Kitchen, One Style Mile',
-      'Diggin Cafe, Anand Lok',
-      'Town Hall, Khan Market',
+      {
+        name: 'Olive Bar & Kitchen, Mehrauli',
+        note: 'Whitewashed courtyard, candles, the Qutub behind you.',
+      },
+      { name: 'Cafe Lota, Crafts Museum', note: 'Regional food done properly, garden seating.' },
+      { name: 'Town Hall, Khan Market', note: 'Easy and buzzy. Good for a first proper dinner.' },
+      { name: 'Indian Accent, The Lodhi', note: 'The big one. We would have to book ahead.' },
     ],
     outdoors: [
-      'Lodhi Garden',
-      'Sunder Nursery',
-      'India Habitat Centre gardens',
-      'Sanjay Van (easy trail)',
+      { name: 'Sunder Nursery', note: 'Old tombs in a garden. Go an hour before sunset.' },
+      { name: 'Lodhi Garden', note: 'The classic. A long walk and no plan at all.' },
+      { name: 'Garden of Five Senses, Saket', note: 'Sculptures and paths that keep turning.' },
+      {
+        name: 'Parthasarathy Rocks, JNU',
+        note: 'Best sunset in the city and almost nobody knows.',
+      },
     ],
     dessert: [
-      'The Big Chill Cakery, Khan Market',
-      "Wenger's, Connaught Place",
-      "Elma's Bakery, Hauz Khas",
-      'Cafe Lota, National Crafts Museum',
+      { name: 'Big Chill Cakery, Khan Market', note: 'Order two. Share neither.' },
+      { name: "Wenger's, Connaught Place", note: 'Open since 1926. Get the patties too.' },
+      { name: "Elma's Bakery, Hauz Khas", note: 'Floral wallpaper and very good cake.' },
+      { name: "L'Opera, Khan Market", note: 'Macarons and a quiet corner table.' },
     ],
     explore: [
-      'Khan Market stroll',
-      'Dilli Haat, INA',
-      'National Gallery of Modern Art',
-      "Humayun's Tomb (evening)",
+      { name: 'Champa Gali, Saidulajaib', note: 'One lane, a dozen small places to duck into.' },
+      { name: 'Dilli Haat, INA', note: 'Crafts from everywhere. Eat your way down the row.' },
+      { name: "Humayun's Tomb at golden hour", note: 'Emptier than you expect close to closing.' },
+      { name: 'Sunset Cinema Club', note: 'A film outdoors, beanbags and a blanket.' },
     ],
   },
 
   bouquetTitle: 'Pick her flowers',
-  bouquetHint: 'Tap a stem to drop it in — or drag if you prefer.',
+  bouquetHint: 'Tap a stem to drop it in, or drag if you prefer.',
   bouquetVaseLabel: "Rhea's flower pot",
   bouquetMilestoneCount: 5,
   bouquetMilestoneMsg: 'Looking lovely already. Add more, or continue whenever.',
   bouquetContinueBtn: 'On to the good part →',
   bouquetSkipCta: 'Skip for now',
 
-  insideJoke: '[INSERT INSIDE JOKE HERE]',
+  // Swap this for your actual inside joke whenever you want. Shown after 5 taps on the little
+  // heart (bottom left, on most screens). Kept generic for now so nothing broken shows on screen.
+  insideJoke: 'you already know the one.',
 
   reasons: [
-    "You've ruined ordinary Tuesdays for me — they all feel a little empty without you in them.",
-    'Your laugh has genuinely wrecked my ability to focus mid-conversation. Repeatedly.',
+    "You've ruined ordinary Tuesdays for me. They all feel a little empty without you in them.",
+    'Your laugh has genuinely wrecked my ability to focus mid conversation. Repeatedly.',
     "Every plan is at least 40% better just because you're the one making fun of it with me.",
     "You've heard my worst jokes on repeat and somehow still laugh. That's basically a superpower.",
     "I like being around you more than I'm willing to admit out loud. Consider this me admitting it.",
@@ -229,7 +357,7 @@ export const CONFIG = {
       a: 'Quiet bookstore',
       b: 'Loud concert',
       myPick: 'Quiet bookstore',
-      myReveal: 'I would have said… bookstore — then coffee next door.',
+      myReveal: 'I would have said… bookstore, then coffee next door.',
     },
     {
       a: 'Rainy day indoors',
@@ -255,7 +383,7 @@ export const CONFIG = {
   anticipationCaptions: [
     'wrapping the present…',
     'adding extra sparkle…',
-    'double-checking everything…',
+    'double checking everything…',
     'almost ready…',
     'okay here we go…',
   ],
@@ -299,7 +427,21 @@ export const CONFIG = {
     'okay I am smiling too now',
   ],
 
-  easterEggMessage: 'You found the secret spot. The universe says: good choice. ✨',
+  easterEggMessage: 'You found the secret spot. [INSERT INSIDE JOKE HERE] ✨',
+
+  storyHandoffIntro: "There's a little world here, made just for you. Take a look around.",
+  storyContinueLabel: 'Take a look around →',
+
+  // Used by the little counter on the desktop. Set this to the day you two started.
+  togetherSince: '2025-12-31',
+  hubDaysLabel: 'days of us',
+
+  hubBootLines: ['Waking up Our World…', 'Loading the good parts…', 'Ready.'],
+  hubMenuTitle: 'Our World',
+  hubMenuShuffle: 'Shuffle the wallpaper',
+  hubMenuTidy: 'Tidy the icons',
+  hubMenuAbout: 'About us',
+  hubAboutText: 'Built by hand, one evening at a time, for you.',
 
   hubTitle: 'Our World',
   hubSubtitle: 'Come back anytime, this little corner is always here for us.',
@@ -310,10 +452,26 @@ export const CONFIG = {
     'I was hoping you would stop by.',
     "Hi love, I'm always happy to see you here.",
     'Back again? I like that.',
-    "This corner missed you a little.",
+    'This corner missed you a little.',
     "Hey, take your time, it's all yours.",
   ],
   hubApps: [
+    // navigateTo (not a windowed app) sends her through the whole ask-and-plan flow: the
+    // question, then the planner, then flowers, then the celebration, back here when it is
+    // done. It must match a value in SCREENS (src/constants/screens.js).
+    {
+      id: 'date-surprise',
+      emoji: '🎟️',
+      name: 'in case you wanna go out with me',
+      description: 'no pressure, open it whenever',
+      navigateTo: 'big-ask',
+    },
+    {
+      id: 'games',
+      emoji: '🎮',
+      name: 'Mini games',
+      description: 'Crack the case, catch hearts, match memories',
+    },
     {
       id: 'memory-lane',
       emoji: '🌸',
@@ -336,7 +494,7 @@ export const CONFIG = {
       id: 'ask-me-anything',
       emoji: '💭',
       name: 'Deep Dive',
-      description: 'Answer first — then see what I said',
+      description: 'Answer first, then see what I said',
     },
     {
       id: 'our-playlist',
@@ -357,6 +515,18 @@ export const CONFIG = {
       description: 'Jot down your thoughts, day by day',
     },
     {
+      id: 'letters',
+      emoji: '✉️',
+      name: 'Letters',
+      description: 'Things I wanted to say properly',
+    },
+    {
+      id: 'conversations',
+      emoji: '💬',
+      name: 'Conversations',
+      description: 'Two small chats worth keeping',
+    },
+    {
       id: 'why-i-made-this',
       emoji: '💌',
       name: 'Why I Made This',
@@ -370,7 +540,7 @@ export const CONFIG = {
   memoryLaneEmptyLikes: 'Nothing here yet, more coming soon 💛',
 
   askMeTitle: 'Deep Dive',
-  askMeSubtitle: 'One question at a time. Answer first — then I reveal mine.',
+  askMeSubtitle: 'One question at a time. Answer first, then I reveal mine.',
   askMeEmpty: 'No questions yet, check back soon.',
   askMePlaceholder: 'Type your answer privately…',
   askMeSubmit: 'Lock in & reveal',
@@ -380,15 +550,19 @@ export const CONFIG = {
   askMeNext: 'Next question →',
   askMeAllDone: 'You answered everything. Our scrapbook is waiting.',
   askMeScrapbookLabel: 'Our answers',
-  askMeScrapbookEmpty: 'Answer a question first — it will land here.',
+  askMeScrapbookEmpty: 'Answer a question first, it will land here.',
   askMeSparkLoading: 'Finding a spark…',
-  askMeSparkFallback: 'Interesting — ask what made that feel true.',
+  askMeSparkFallback: 'Interesting, ask what made that feel true.',
 
   playlistTitle: 'Our Playlist',
   playlistSubtitle: 'Search, add a note, and press play together.',
   playlistSearchPlaceholder: 'Search a song or artist…',
-  playlistEmpty: 'No songs yet — search above to add the first one.',
-  playlistSetupHint: 'Need Spotify search? Add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET to server/.env',
+  playlistShuffle: '🎲 Shuffle ours',
+  playlistYoutubePlaceholder: 'YouTube link (optional, so it plays in full)',
+  playlistNoPlayer: 'No player linked yet. Add a YouTube link to hear this one.',
+  playlistEmpty: 'No songs yet, search above to add the first one.',
+  playlistSetupHint:
+    'Need Spotify search? Add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET to server/.env',
   playlistFilterEmpty: 'Nothing in this filter yet.',
   playlistNotePlaceholder: 'This reminds me of…',
   playlistAddWithNote: 'Add song',
@@ -402,7 +576,9 @@ export const CONFIG = {
 
   movieTitle: 'Movie Nights',
   movieSubtitle: 'Poster board, dual ratings, see if we match.',
-  movieEmpty: 'No movies yet — search above or add one below.',
+  movieSpinBtn: '🎬 Pick tonight for us',
+  movieSpinPrefix: 'Tonight it is',
+  movieEmpty: 'No movies yet, search above or add one below.',
   movieSearchPlaceholder: 'Search a movie…',
   movieAddPlaceholder: 'Or type a title manually…',
   movieAddNotePlaceholder: 'Optional note…',
@@ -411,7 +587,8 @@ export const CONFIG = {
   movieYourRating: 'You',
   movieHisRating: 'Him',
   movieAffinity: '{matches} matches of {total} shared ratings · {pct}% affinity',
-  movieSetupHint: 'Need movie search? Add TMDB_API_KEY to server/.env (free at themoviedb.org/settings/api).',
+  movieSetupHint:
+    'Need movie search? Add TMDB_API_KEY to server/.env (free at themoviedb.org/settings/api).',
 
   diaryTitle: 'Dear Diary',
   diarySubtitle: 'Write down whatever is on your mind, day by day.',
@@ -427,9 +604,9 @@ export const CONFIG = {
   whyIMadeThisText: [
     'I made this because I realized I was always around but never really there.',
     'I was so focused on what I wanted that I never stopped to understand what mattered to you, or even to me.',
-    "You used to ask me questions — about myself, what I feel, what I want — and I'd go blank. Not because I didn't care. But because I'd never stopped to think about any of it.",
-    "The time we didn't talk — that's when it hit me. I missed this. Not just talking to you, but what talking to you does to me. You're the only person who made me want to actually figure myself out.",
+    "You used to ask me questions about myself, what I feel, what I want, and I'd go blank. Not because I didn't care. But because I'd never stopped to think about any of it.",
+    "The time we didn't talk is when it hit me. I missed this. Not just talking to you, but what talking to you does to me. You're the only person who made me want to actually figure myself out.",
     'This is me showing up with answers. And with effort. Finally.',
   ],
-  whyIMadeThisPhoto: '/assets/why-i-made-this.jpg',
+  whyIMadeThisPhoto: '/assets/car-ride.jpg',
 };

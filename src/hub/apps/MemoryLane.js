@@ -1,6 +1,7 @@
 import { CONFIG } from '../../config.js';
 import { EVENTS } from '../../constants/eventTypes.js';
 import { hubApi } from '../api.js';
+import { escapeHtml } from '../../utils/dom.js';
 
 /** @param {HTMLElement} container @param {{ analytics: import('../../analytics/Analytics.js').Analytics }} ctx */
 export function createMemoryLaneApp(container, { analytics }) {
@@ -56,12 +57,6 @@ export function createMemoryLaneApp(container, { analytics }) {
       `
       )
       .join('');
-  }
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str ?? '';
-    return div.innerHTML;
   }
 
   async function loadKind(kind) {

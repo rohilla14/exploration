@@ -1726,3 +1726,196 @@
     font-size: 0.75rem;
   }
 }
+
+/* Photos app: captions */
+.photo-wall__item {
+  position: relative;
+}
+
+.photo-wall__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1.4rem 0.6rem 0.5rem;
+  background: linear-gradient(transparent, rgba(61, 44, 36, 0.62));
+  color: #fff;
+  font-family: var(--font-accent);
+  font-size: 0.95rem;
+  font-style: italic;
+  text-align: left;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.photo-wall__item:hover .photo-wall__caption,
+.photo-wall__item:focus-visible .photo-wall__caption {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .photo-wall__caption {
+    opacity: 1;
+  }
+}
+
+.photo-lightbox__figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 100%;
+}
+
+.photo-lightbox__caption {
+  color: #fff;
+  font-family: var(--font-accent);
+  font-size: 1.25rem;
+  font-style: italic;
+}
+
+/* Deep Dive: questions that float around a "sky" you can grab and toss */
+.qa-sky__hint {
+  margin: 0 0 0.5rem;
+  text-align: center;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--text-light);
+}
+
+.qa-sky__more {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-family: var(--font-os, var(--font-body));
+  font-size: 0.72rem;
+  color: var(--text-light);
+}
+
+.qa-sky {
+  position: relative;
+  width: 100%;
+  height: clamp(260px, 42vh, 420px);
+  overflow: hidden;
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(255, 255, 255, 0.85), transparent 55%),
+    radial-gradient(ellipse at 85% 85%, rgba(245, 198, 168, 0.35), transparent 60%),
+    linear-gradient(180deg, var(--sky-soft), var(--pink-soft));
+  box-shadow: inset 0 0 0 1.5px rgba(122, 59, 69, 0.12);
+}
+
+.qa-sky--still {
+  height: auto;
+  min-height: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  justify-content: center;
+  padding: 1rem;
+  overflow: visible;
+}
+
+.qa-cloud--float {
+  position: absolute;
+  left: 0;
+  top: 0;
+  min-width: 0;
+  width: max-content;
+  max-width: min(215px, 46%);
+  padding: 0.8rem 1rem;
+  animation: none;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform;
+  transition: scale 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.qa-sky--still .qa-cloud--float {
+  position: relative;
+  max-width: 260px;
+  touch-action: auto;
+  cursor: pointer;
+}
+
+.qa-cloud--float:hover {
+  scale: 1.06;
+  box-shadow: 0 14px 32px rgba(122, 59, 69, 0.2);
+}
+
+.qa-cloud--held {
+  cursor: grabbing;
+  z-index: 5;
+  scale: 1.1;
+  box-shadow: 0 20px 40px rgba(122, 59, 69, 0.28);
+}
+
+.qa-cloud--pop {
+  animation: qaPop 0.24s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes qaPop {
+  to {
+    scale: 1.45;
+    opacity: 0;
+  }
+}
+
+/* Playlist shuffle and the movie picker */
+.playlist-shuffle {
+  margin-left: auto;
+  padding: 0.35rem 0.8rem;
+  border: 2px solid var(--win-border);
+  border-radius: 999px;
+  background: var(--butter);
+  color: var(--burgundy);
+  font-family: var(--font-os);
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.playlist-song__noplayer {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-accent);
+  font-style: italic;
+  color: var(--text-light);
+}
+
+.playlist-song__embed--yt {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+}
+
+.movie-spin {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.75rem 0 1rem;
+}
+
+.movie-spin__result {
+  margin: 0;
+  font-family: var(--font-accent);
+  font-size: 1.1rem;
+  color: var(--text-light);
+}
+
+.movie-spin__result--landed {
+  color: var(--burgundy);
+  animation: spinLand 0.5s var(--transition-bounce) both;
+}
+
+@keyframes spinLand {
+  from { transform: scale(0.85); opacity: 0.4; }
+}
+
+.movie-poster--picked {
+  outline: 3px solid var(--terracotta);
+  outline-offset: 3px;
+}

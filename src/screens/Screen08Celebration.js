@@ -1,7 +1,9 @@
 import { CONFIG } from '../config.js';
+import { windowBar } from '../utils/dom.js';
 import { EVENTS } from '../constants/eventTypes.js';
 import { createLifecycle } from '../utils/lifecycle.js';
 import { SCREENS } from '../constants/screens.js';
+import { focusOf } from '../utils/photos.js';
 
 const PLAN_KEY = 'exploration.datePlan';
 
@@ -19,23 +21,20 @@ export function createCelebrationScreen({ manager, analytics, confetti }) {
   element.className = 'screen screen--celebration';
 
   const inner = document.createElement('div');
-  inner.className = 'screen__inner celebration__inner';
+  inner.className = 'screen__inner celebration__inner win';
 
   const photo = document.createElement('div');
   photo.className = 'celebration-photo celebration-photo--placeholder';
   photo.textContent = 'Your photo goes here 💕';
 
   const img = new Image();
-  img.src =
-    CONFIG.photos?.celebration ||
-    CONFIG.photos?.cinematic ||
-    '/assets/photo.jpeg';
+  img.src = CONFIG.photos?.celebration || CONFIG.gallery[0]?.src || '';
   img.onload = () => {
     photo.classList.remove('celebration-photo--placeholder');
     photo.textContent = '';
     photo.style.backgroundImage = `url(${img.src})`;
     photo.style.backgroundSize = 'cover';
-    photo.style.backgroundPosition = 'center';
+    photo.style.backgroundPosition = focusOf(CONFIG.photos?.celebration);
   };
 
   const headline = document.createElement('h2');
@@ -58,11 +57,10 @@ export function createCelebrationScreen({ manager, analytics, confetti }) {
     manager.goTo(SCREENS.HUB);
   });
 
-  inner.appendChild(photo);
-  inner.appendChild(headline);
-  inner.appendChild(planSummary);
-  inner.appendChild(closing);
-  inner.appendChild(hubBtn);
+  const body = document.createElement('div');
+  body.className = 'celebration__body';
+  body.append(photo, headline, planSummary, closing, hubBtn);
+  inner.append(windowBar('she said yes.txt'), body);
   element.appendChild(inner);
 
   function readPlan() {

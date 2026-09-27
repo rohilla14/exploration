@@ -49,7 +49,7 @@ export function createUsCheckGame(container, { analytics, onComplete }) {
     reveal.innerHTML = `
       <p class="us-check__her">You picked: <strong>${herPick}</strong></p>
       <p class="us-check__mine">${pair.myReveal}</p>
-      ${overlap ? '<p class="us-check__overlap">Overlap ✨</p>' : '<p class="us-check__diff">Different — still cute.</p>'}
+      ${overlap ? '<p class="us-check__overlap">Overlap ✨</p>' : '<p class="us-check__diff">Different, still cute.</p>'}
       <button type="button" class="btn btn--primary" data-role="next">${
         index + 1 >= pairs.length ? 'See score' : 'Next'
       }</button>

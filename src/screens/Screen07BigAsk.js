@@ -1,4 +1,5 @@
 import { CONFIG } from '../config.js';
+import { windowBar } from '../utils/dom.js';
 import { SCREENS } from '../constants/screens.js';
 import { EVENTS } from '../constants/eventTypes.js';
 import { createLifecycle } from '../utils/lifecycle.js';
@@ -20,7 +21,7 @@ export function createBigAskScreen({ manager, analytics, confetti }) {
   const atmosphere = createAmbientAtmosphere(element, { intensity: 'bigask' });
 
   const inner = document.createElement('div');
-  inner.className = 'screen__inner screen-card';
+  inner.className = 'screen__inner screen-card win big-ask-win';
 
   const question = document.createElement('h2');
   question.className = 'big-ask__question';
@@ -51,8 +52,10 @@ export function createBigAskScreen({ manager, analytics, confetti }) {
   buttonsWrap.appendChild(noBtn);
   buttonsWrap.appendChild(noMsg);
 
-  inner.appendChild(question);
-  inner.appendChild(buttonsWrap);
+  const body = document.createElement('div');
+  body.className = 'big-ask__body';
+  body.append(question, buttonsWrap);
+  inner.append(windowBar('a question for you.txt'), body);
   element.appendChild(inner);
   document.body.appendChild(cursorEmoji);
 
@@ -171,7 +174,10 @@ export function createBigAskScreen({ manager, analytics, confetti }) {
     const w = buttonsWrap.offsetWidth;
     const h = buttonsWrap.offsetHeight;
     if (!w) return;
-    setNoPos(w * 0.52, h * 0.35);
+    // Yes and No sit side by side, centred as a pair (No starts out to the right of Yes).
+    const gap = 24;
+    yesBtn.style.marginRight = `${noBtn.offsetWidth + gap}px`;
+    setNoPos(yesBtn.offsetLeft + yesBtn.offsetWidth + gap, (h - noBtn.offsetHeight) / 2);
   }
 
   function showCursorEmoji(emoji) {

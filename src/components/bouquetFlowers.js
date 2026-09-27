@@ -36,3 +36,11 @@ export function flowerMarkup(type, className = 'bb-flower-art') {
 export function vaseMarkup() {
   return `<img class="bb-vase-art" src="${BOUQUET_ASSETS.vase}" alt="" draggable="false" />`;
 }
+
+/**
+ * Second copy of the vase, clipped to everything below the mouth. It is drawn over the stems so
+ * they seem to sit inside the opening instead of floating above it.
+ */
+export function vaseFrontMarkup() {
+  return `<img class="bb-vase-art bb-vase-art--front" src="${BOUQUET_ASSETS.vase}" alt="" draggable="false" />`;
+}

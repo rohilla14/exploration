@@ -1,6 +1,7 @@
 import { CONFIG } from '../../config.js';
 import { EVENTS } from '../../constants/eventTypes.js';
 import { hubApi } from '../api.js';
+import { escapeHtml } from '../../utils/dom.js';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -57,12 +58,6 @@ export function createDearDiaryApp(container, { analytics }) {
   const aiPromptEl = container.querySelector('[data-role="ai-prompt"]');
   const composer = container.querySelector('[data-role="composer"]');
   const list = container.querySelector('[data-role="list"]');
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str ?? '';
-    return div.innerHTML;
-  }
 
   function formatDateLong(iso) {
     return new Date(`${iso}T12:00:00`).toLocaleDateString(undefined, {

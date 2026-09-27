@@ -8,6 +8,7 @@ import {
 } from './api.js';
 import { eventLabel, screenLabel, eventTone } from './labels.js';
 import { mountContentManager } from './contentManager.js';
+import { escapeHtml } from '../utils/dom.js';
 
 /** @typedef {object} SessionRow
  * @property {string} id
@@ -68,14 +69,6 @@ function formatActivitiesList(activities) {
 }
 
 /** @param {string} s */
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 /** @param {object[]} events */
 function extractDatePlan(events) {
   /** @type {{ selectedDate?: string, selectedTime?: string, activities?: unknown[], reply?: string } | null} */
@@ -299,7 +292,7 @@ async function selectSession(sessionId) {
       btn.classList.toggle('session-item--active', btn.dataset.sessionId === sessionId);
     });
   } catch (err) {
-    detailEl.innerHTML = `<div class="admin__error">${err.message}</div>`;
+    detailEl.innerHTML = `<div class="admin__error">${escapeHtml(err.message)}</div>`;
   }
 }
 
@@ -386,7 +379,7 @@ function renderSessionDetail(data) {
             ${ev.screen_id ? `<span class="timeline-item__screen">${screenLabel(ev.screen_id)}</span>` : ''}
             <span class="timeline-item__time">${fmtTime(ev.client_timestamp)}</span>
           </div>
-          ${extra ? `<div class="timeline-item__payload" style="font-size:0.8rem;color:var(--text-light);margin-top:0.2rem">${extra}</div>` : ''}
+          ${extra ? `<div class="timeline-item__payload" style="font-size:0.8rem;color:var(--text-light);margin-top:0.2rem">${escapeHtml(extra)}</div>` : ''}
         </li>
       `;
     });

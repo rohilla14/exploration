@@ -22,7 +22,7 @@ export function markJourneyComplete() {
 export function nextGreeting(greetings) {
   if (!Array.isArray(greetings) || !greetings.length) return '';
 
-  let index = 0;
+  let index;
   try {
     index = Number(localStorage.getItem(GREETING_INDEX_KEY) || '0') || 0;
   } catch {

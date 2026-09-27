@@ -1,36 +1,42 @@
 import { EVENTS } from '../constants/eventTypes.js';
+import { playChime, playClick, playWhoosh, startAmbientPad } from '../utils/sfx.js';
 
-/** @param {import('../analytics/Analytics.js').Analytics} [analytics] */
+/** Elements that should make a sound when pressed. */
+const CLICKABLE =
+  '[data-click-sound], button, .btn, .game-card, .option-btn, .continue-btn, .desk-icon, .dp-place, .dp-mood, .dp-time';
+
+/** Elements that get the warmer chime instead of the plain tick. */
+const CHIME = '.btn--yes, .dp__next--final, .big-ask__btn, .story-hub__continue, .explore__go';
+
+/**
+ * All sound is generated in the browser, so there are no audio files to ship or
+ * to go missing. Music is off until she turns it on.
+ * @param {import('../analytics/Analytics.js').Analytics} [analytics]
+ */
 export class AudioManager {
   constructor(analytics) {
     this.analytics = analytics ?? null;
-
-    this.music = new Audio('/assets/music.mp3');
-    this.music.loop = true;
-    this.music.volume = 0.35;
-
-    this.click = new Audio('/assets/click.mp3');
-    this.click.volume = 0.5;
-
     this.musicEnabled = false;
+    /** @type {{ stop: () => void } | null} */
+    this.pad = null;
 
     this.btn = document.createElement('button');
     this.btn.className = 'audio-toggle';
     this.btn.type = 'button';
-    this.btn.setAttribute('aria-label', 'Toggle background music');
+    this.btn.setAttribute('aria-label', 'Toggle background sound');
     this.btn.innerHTML = '🔇';
     this.btn.addEventListener('click', () => this.toggleMusic());
 
     document.body.appendChild(this.btn);
+
     document.addEventListener(
       'click',
       (e) => {
-        const target = e.target.closest(
-          '[data-click-sound], button, .btn, .game-card, .option-btn, .continue-btn'
-        );
-        if (target && !target.classList.contains('audio-toggle') && !target.closest('.easter-egg-heart')) {
-          this.playClick();
-        }
+        const target = e.target.closest(CLICKABLE);
+        if (!target) return;
+        if (target.classList.contains('audio-toggle') || target.closest('.easter-egg-heart')) return;
+        if (target.matches(CHIME)) this.playChime();
+        else this.playClick();
       },
       true
     );
@@ -40,19 +46,26 @@ export class AudioManager {
     this.musicEnabled = !this.musicEnabled;
     this.btn.innerHTML = this.musicEnabled ? '🔊' : '🔇';
     this.btn.classList.toggle('audio-toggle--on', this.musicEnabled);
-
     this.analytics?.track(EVENTS.AUDIO_TOGGLE, { enabled: this.musicEnabled });
 
     if (this.musicEnabled) {
-      this.music.play().catch(() => {});
+      this.pad = startAmbientPad();
     } else {
-      this.music.pause();
+      this.pad?.stop();
+      this.pad = null;
     }
   }
 
   playClick() {
-    const clone = this.click.cloneNode();
-    clone.volume = 0.5;
-    clone.play().catch(() => {});
+    playClick();
+  }
+
+  playChime() {
+    playChime();
+  }
+
+  /** Called when a screen changes. */
+  playWhoosh() {
+    playWhoosh();
   }
 }

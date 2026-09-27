@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
 /* Palette pulled from Rhea's photos — warm cream, sky blue, dusty rose, terracotta */
 :root {
@@ -49,6 +49,7 @@
   --glass-shadow: 0 8px 32px rgba(196, 92, 74, 0.1);
 
   --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-os: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
   --font-accent: 'Cormorant Garamond', Georgia, serif;
 
   --transition: 450ms cubic-bezier(0.4, 0, 0.2, 1);

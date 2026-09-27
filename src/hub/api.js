@@ -1,11 +1,14 @@
 const API = '/api';
+const REQUEST_TIMEOUT_MS = 15000;
 
 async function request(path, options = {}) {
   const hasBody = options.body !== undefined;
   const { signal, ...rest } = options;
+  // Never let a hung API leave a mini-app spinning forever.
+  const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
   const res = await fetch(`${API}${path}`, {
     ...rest,
-    signal,
+    signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
     headers: hasBody ? { 'Content-Type': 'application/json', ...rest.headers } : rest.headers,
     body: hasBody ? JSON.stringify(rest.body) : undefined,
   });

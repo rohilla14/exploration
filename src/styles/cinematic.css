@@ -132,7 +132,8 @@
   width: 100%;
   height: 100%;
   background-size: cover;
-  background-position: center;
+  /* portraits crop to a landscape band: aim higher so faces stay in frame */
+  background-position: center 30%;
   border-radius: 0;
   opacity: 0;
   transition: opacity 500ms ease;
@@ -419,5 +420,175 @@
 
   .story-hub__grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   Scroll chapters: word by word lines, the film strip, the side rail.
+   ============================================================ */
+
+/* Each beat gets room to breathe, so the chapter is worth scrolling through. */
+.cinematic-track {
+  height: 560vh;
+}
+
+.cinematic-line {
+  will-change: opacity, transform;
+}
+
+/* Words start faint and light up one at a time as she scrolls. */
+.cinematic-word {
+  color: rgba(255, 255, 255, 0.24);
+  transition: color 0.45s ease, text-shadow 0.45s ease;
+}
+
+.cinematic-word--lit {
+  color: #fff;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.45);
+}
+
+/* ---------- film strip ---------- */
+
+.strip-track {
+  position: relative;
+  height: 320vh;
+}
+
+.strip-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.25rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.7), transparent 55%),
+    linear-gradient(160deg, var(--sky-soft), var(--pink-soft) 70%, var(--peach));
+}
+
+.strip-label {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0 clamp(1rem, 5vw, 4rem);
+  font-family: var(--font-accent);
+  font-size: clamp(1.3rem, 3.4vw, 2rem);
+  font-style: italic;
+  color: var(--burgundy);
+  transition: opacity 0.4s ease;
+}
+
+.strip-rail {
+  display: flex;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  padding: 0 clamp(1rem, 5vw, 4rem);
+  will-change: transform;
+}
+
+.strip-frame {
+  flex: 0 0 auto;
+  width: clamp(190px, 26vw, 300px);
+  margin: 0;
+  padding: 0.6rem 0.6rem 0.4rem;
+  border: 2px solid var(--win-border);
+  border-radius: 10px;
+  background: var(--win-bg);
+  box-shadow: 5px 6px 0 rgba(122, 59, 69, 0.18);
+}
+
+.strip-frame:nth-child(even) {
+  transform: rotate(1.4deg);
+}
+
+.strip-frame:nth-child(3n) {
+  transform: rotate(-1.6deg);
+}
+
+.strip-frame__img {
+  display: block;
+  aspect-ratio: 3 / 4;
+  border-radius: 5px;
+  background: var(--cream-warm) center / cover no-repeat;
+}
+
+.strip-frame__cap {
+  padding-top: 0.4rem;
+  font-family: var(--font-accent);
+  font-size: 0.95rem;
+  font-style: italic;
+  text-align: center;
+  color: var(--burgundy);
+}
+
+/* ---------- side rail ---------- */
+
+.story-rail {
+  position: absolute;
+  left: clamp(0.6rem, 2vw, 1.4rem);
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 4;
+  /* an explicit height is what gives the fill line something to run down */
+  height: min(190px, 34vh);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.story-rail__line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  translate: -50% 0;
+  width: 2px;
+  border-radius: 2px;
+  background: rgba(122, 59, 69, 0.2);
+  overflow: hidden;
+}
+
+.story-rail__line::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--rail-fill, 0%);
+  background: var(--rose-deep);
+  transition: height 0.12s linear;
+}
+
+.story-rail__dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cream);
+  box-shadow: 0 0 0 2px rgba(122, 59, 69, 0.25);
+  transition: background 0.3s ease, scale 0.3s ease, box-shadow 0.3s ease;
+}
+
+.story-rail__dot--on {
+  background: var(--rose-deep);
+  box-shadow: 0 0 0 2px var(--rose-deep), 0 0 12px rgba(201, 107, 122, 0.6);
+  scale: 1.4;
+}
+
+@media (max-width: 640px) {
+  .story-rail {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-word {
+    color: #fff;
+  }
+
+  .strip-rail {
+    transform: none !important;
+    overflow-x: auto;
   }
 }

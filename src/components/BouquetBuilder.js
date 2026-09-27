@@ -1,24 +1,27 @@
-import { flowerMarkup, vaseMarkup } from './bouquetFlowers.js';
+import { flowerMarkup, vaseFrontMarkup, vaseMarkup } from './bouquetFlowers.js';
 
-/** Fan slots — denser center cluster so a few stems already look like a bouquet. */
+/** Fan slots, denser center cluster so a few stems already look like a bouquet. */
 const BOUQUET_SLOTS = [
-  { id: 'center', x: 0, rot: -2, scale: 1.08, z: 5 },
-  { id: 'left-1', x: -16, rot: -12, scale: 1.0, z: 6 },
-  { id: 'right-1', x: 16, rot: 12, scale: 1.0, z: 6 },
-  { id: 'left-2', x: -28, rot: -20, scale: 0.96, z: 4 },
-  { id: 'right-2', x: 28, rot: 20, scale: 0.96, z: 4 },
-  { id: 'back-l', x: -10, rot: -8, scale: 1.04, z: 2 },
-  { id: 'back-r', x: 10, rot: 8, scale: 1.04, z: 2 },
-  { id: 'left-3', x: -38, rot: -28, scale: 0.9, z: 7 },
-  { id: 'right-3', x: 38, rot: 28, scale: 0.9, z: 7 },
-  { id: 'front', x: 4, rot: 4, scale: 0.94, z: 8 },
+  { id: 'center', x: 0, rot: -2, scale: 1.05, z: 5 },
+  { id: 'left-1', x: -16, rot: -17, scale: 0.94, z: 6 },
+  { id: 'right-1', x: 16, rot: 17, scale: 0.94, z: 6 },
+  { id: 'left-2', x: -28, rot: -32, scale: 0.84, z: 4 },
+  { id: 'right-2', x: 28, rot: 32, scale: 0.84, z: 4 },
+  { id: 'back-l', x: -10, rot: -8, scale: 1.0, z: 2 },
+  { id: 'back-r', x: 10, rot: 8, scale: 1.0, z: 2 },
+  { id: 'left-3', x: -38, rot: -44, scale: 0.72, z: 7 },
+  { id: 'right-3', x: 38, rot: 44, scale: 0.72, z: 7 },
+  { id: 'front', x: 4, rot: 5, scale: 0.86, z: 8 },
 ];
 
+/** Half the vase opening as a share of the vase width, kept a little narrower than the real gap. */
+const MOUTH_HALF_WIDTH = 0.072;
+const MAX_BASE_X = 38;
 const JITTER_X = 2.5;
 const JITTER_ROT = 2.5;
 const SETTLE_MS = 380;
 
-/** Real stems only — hue-rotated “variants” looked cheap in the tray. */
+/** Real stems only, hue-rotated “variants” looked cheap in the tray. */
 const FLOWER_TYPES = [
   { id: 'lotus', name: 'Lotus', tag: 'fav' },
   { id: 'rose', name: 'Rose' },
@@ -81,6 +84,7 @@ export function createBouquetBuilder(options = {}) {
             <div class="bb-vase-wrap">
               <div class="bb-drop-zone" aria-hidden="true"></div>
               ${vaseMarkup()}
+              ${vaseFrontMarkup()}
               ${vaseLabel ? `<p class="bb-vase-label">${vaseLabel}</p>` : ''}
               <div class="bb-vase-shadow"></div>
             </div>
@@ -97,7 +101,7 @@ export function createBouquetBuilder(options = {}) {
     </div>
     <p class="bb-milestone" hidden></p>
     <footer class="bb-footer">
-      <p class="bb-footer__count" data-role="count">Empty vase — add a flower to begin</p>
+      <p class="bb-footer__count" data-role="count">Empty vase. Add a flower to begin</p>
       <div class="bb-footer__actions">
         <button type="button" class="bb-skip">${skipLabel}</button>
         <button type="button" class="btn btn--primary bb-continue">${continueLabel}</button>
@@ -149,7 +153,7 @@ export function createBouquetBuilder(options = {}) {
     clearBtn.hidden = placedCount === 0;
 
     if (placedCount === 0) {
-      countEl.textContent = 'Empty vase — add a flower to begin';
+      countEl.textContent = 'Empty vase. Add a flower to begin';
     } else if (placedCount === 1) {
       countEl.textContent = '1 stem in the vase';
     } else {
@@ -277,16 +281,19 @@ export function createBouquetBuilder(options = {}) {
   }
 
   function updateBouquetScale(count) {
-    // Keep blooms readable — only a gentle tuck as the vase fills.
+    // Keep blooms readable, only a gentle tuck as the vase fills.
     const bloom = count <= 1 ? 1 : Math.max(0.82, 1 - (count - 1) * 0.028);
     const spread = count <= 1 ? 1 : Math.max(0.78, 1 - (count - 1) * 0.022);
     root.style.setProperty('--bb-bloom-scale', String(bloom));
     root.style.setProperty('--bb-spread', String(spread));
 
-    const w = arrangement.clientWidth || 1;
+    // The vase opening is about 19% of the vase width: keep every stem base inside it.
+    const vaseW = (arrangement.clientWidth || 1) / 1.2;
+    const mouthHalf = vaseW * MOUTH_HALF_WIDTH;
     arrangement.querySelectorAll('.bb-stem').forEach((stem) => {
       const baseX = Number(stem.dataset.baseX) || 0;
-      stem.style.setProperty('--px', `${(baseX / 100) * w * 0.42 * spread}px`);
+      const t = Math.max(-1, Math.min(1, baseX / MAX_BASE_X));
+      stem.style.setProperty('--px', `${t * mouthHalf * spread}px`);
     });
   }
 

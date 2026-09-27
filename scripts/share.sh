@@ -62,7 +62,8 @@ ok "Build complete."
 
 info "Starting server on port $PORT (logs: $SERVER_LOG)…"
 : > "$SERVER_LOG"
-PORT="$PORT" node server/index.js >> "$SERVER_LOG" 2>&1 &
+# The tunnel is a reverse proxy: trust it so rate limits see real client IPs.
+TRUST_PROXY="${TRUST_PROXY:-1}" PORT="$PORT" node server/index.js >> "$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
 
 for _ in $(seq 1 30); do

@@ -1,0 +1,1083 @@
+/* ============================================================
+   Cozy desktop theme — soft Y2K "operating system" for Our World.
+   Loaded last so it can restyle loading + hub without touching
+   the per-app styles in hub.css.
+   ============================================================ */
+
+:root {
+  --win-bg: #fffaf4;
+  --win-border: var(--burgundy);
+  --win-bar: linear-gradient(90deg, var(--rose-dusty), var(--peach) 60%, var(--butter));
+  --win-shadow: 5px 5px 0 rgba(122, 59, 69, 0.2), 0 24px 60px rgba(122, 59, 69, 0.22);
+  --taskbar-h: 52px;
+}
+
+/* ---------- Window chrome (shared) ---------- */
+
+.win {
+  display: flex;
+  flex-direction: column;
+  background: var(--win-bg);
+  border: 2px solid var(--win-border);
+  border-radius: 14px;
+  box-shadow: var(--win-shadow);
+  overflow: hidden;
+}
+
+.win__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--win-bar);
+  border-bottom: 2px solid var(--win-border);
+  font-family: var(--font-os);
+  font-size: 0.78rem;
+  color: var(--burgundy);
+  user-select: none;
+  cursor: grab;
+}
+
+.win--dragging .win__bar {
+  cursor: grabbing;
+}
+
+.win__dots {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.win__dot {
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  border: 1.5px solid var(--win-border);
+  border-radius: 50%;
+  background: var(--cream);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+button.win__dot:hover {
+  transform: scale(1.2);
+}
+
+.win__dot--close {
+  background: #ff8f8f;
+}
+.win__dot--min {
+  background: var(--butter);
+}
+.win__dot--max {
+  background: var(--sage);
+}
+
+.win__title {
+  flex: 1;
+  text-align: center;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  /* keeps the title centred despite the dots on the left */
+  margin-right: 3.4rem;
+}
+
+.win-btn {
+  min-width: 88px;
+  padding: 0.45rem 1rem;
+  border: 2px solid var(--win-border);
+  border-radius: 8px;
+  background: var(--cream-warm);
+  color: var(--burgundy);
+  font-family: var(--font-os);
+  font-size: 0.8rem;
+  box-shadow: 2px 2px 0 rgba(122, 59, 69, 0.25);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.win-btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 rgba(122, 59, 69, 0.3);
+}
+
+.win-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.win-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.win-btn--primary {
+  background: var(--rose-dusty);
+}
+
+/* ---------- Loading: setup wizard ---------- */
+
+.screen--loading {
+  overflow: hidden;
+}
+
+.screen--loading .setup {
+  width: min(560px, 100%);
+  max-width: 560px;
+  padding: 0;
+  animation: setup-in 0.6s var(--transition-bounce) both;
+}
+
+@keyframes setup-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+}
+
+.setup__body {
+  display: flex;
+  min-height: 250px;
+}
+
+.setup__art {
+  flex: 0 0 132px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.55), transparent 55%),
+    linear-gradient(160deg, var(--rose-dusty), var(--sky) 90%);
+  border-right: 2px solid var(--win-border);
+}
+
+.setup__art span {
+  font-size: 4rem;
+  color: var(--white);
+  text-shadow: 0 4px 18px rgba(122, 59, 69, 0.35);
+  animation: setup-beat 1.6s ease-in-out infinite;
+}
+
+@keyframes setup-beat {
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+.setup__main {
+  flex: 1;
+  padding: 1.5rem 1.5rem 1.25rem;
+  text-align: left;
+}
+
+.screen--loading .setup .loading__for {
+  font-family: var(--font-os);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rose-deep);
+  margin: 0 0 0.35rem;
+}
+
+.setup__title {
+  font-family: var(--font-accent);
+  font-size: 1.8rem;
+  line-height: 1.1;
+  margin: 0 0 0.6rem;
+  color: var(--text);
+}
+
+.setup__lead {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  margin: 0 0 1.4rem;
+}
+
+.setup__progress {
+  height: 22px;
+  padding: 3px;
+  border: 2px solid var(--win-border);
+  border-radius: 8px;
+  background: var(--white);
+}
+
+.setup__progress-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--rose-deep) 0 10px,
+    var(--rose-dusty) 10px 14px
+  );
+  transition: width 0.12s linear;
+}
+
+.setup__status {
+  margin: 0.7rem 0 0;
+  min-height: 1.3em;
+  font-family: var(--font-os);
+  font-size: 0.78rem;
+  color: var(--olive);
+}
+
+.setup__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+  border-top: 2px solid var(--win-border);
+  background: var(--cream-warm);
+}
+
+.setup--shake {
+  animation: setup-shake 0.45s;
+}
+
+@keyframes setup-shake {
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(3px); }
+}
+
+/* ---------- Hub: the desktop ---------- */
+
+.screen--hub {
+  padding: 0;
+  justify-content: flex-start;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.desk {
+  position: absolute;
+  inset: 0 0 var(--taskbar-h) 0;
+  z-index: 1;
+  overflow: hidden;
+  background: #2b201e;
+}
+
+.desk__icons {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(auto-fill, 104px);
+  grid-auto-columns: 104px;
+  gap: 0.5rem;
+  align-content: start;
+  height: 100%;
+  padding: 1rem;
+}
+
+.desk-icon {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.2rem;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-os);
+  color: var(--text);
+}
+
+.desk-icon:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.desk-icon--selected,
+.desk-icon:focus-visible {
+  background: rgba(201, 107, 122, 0.22);
+  border-color: var(--rose-deep);
+  outline: none;
+}
+
+.desk-icon__tile {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  font-size: 1.7rem;
+  border: 2px solid var(--win-border);
+  border-radius: 14px;
+  background: var(--win-bg);
+  box-shadow: 3px 3px 0 rgba(122, 59, 69, 0.22);
+}
+
+.desk-icon__name {
+  font-size: 0.7rem;
+  line-height: 1.25;
+  text-align: center;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 250, 244, 0.88);
+  color: var(--burgundy);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+}
+
+/* The one desk icon that leaves the desktop entirely (the proposal + planner flow) — a warm
+   border and a slow pulse so it invites a tap without shouting. */
+.desk-icon--surprise .desk-icon__tile {
+  border-color: var(--terracotta);
+  background: linear-gradient(160deg, var(--butter), var(--win-bg));
+  animation: surprise-pulse 2.6s ease-in-out infinite;
+}
+
+.desk-icon--surprise .desk-icon__name {
+  background: var(--butter);
+}
+
+.startmenu__item--surprise .startmenu__emoji {
+  filter: drop-shadow(0 0 4px rgba(196, 92, 74, 0.45));
+}
+
+.desk-icon__badge {
+  position: absolute;
+  top: 4px;
+  right: 20px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  background: var(--terracotta);
+  z-index: 1;
+}
+
+.desk__note {
+  position: absolute;
+  top: 6.75rem;
+  right: 1.25rem;
+  width: 210px;
+  padding: 0.9rem 1rem 1rem;
+  background: var(--butter);
+  border: 1.5px solid rgba(122, 59, 69, 0.35);
+  border-radius: 4px 4px 4px 22px;
+  box-shadow: 3px 5px 14px rgba(122, 59, 69, 0.2);
+  transform: rotate(2deg);
+  pointer-events: none;
+}
+
+.desk__note-greeting {
+  font-family: var(--font-accent);
+  font-size: 1.15rem;
+  line-height: 1.25;
+  color: var(--burgundy);
+  margin: 0 0 0.4rem;
+}
+
+.desk__note-sub {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-light);
+  margin: 0;
+}
+
+.desk__windows {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.desk__windows .win {
+  position: absolute;
+  width: min(680px, 92vw);
+  height: min(560px, calc(100% - 3rem));
+  pointer-events: auto;
+  animation: win-pop 0.28s var(--transition-bounce) both;
+}
+
+@keyframes win-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+}
+
+.desk__windows .win--min {
+  display: none;
+}
+
+.desk__windows .win--max {
+  inset: 0 !important;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  border-width: 0 0 2px;
+}
+
+.desk__windows .win--dragging {
+  user-select: none;
+  box-shadow: 8px 10px 0 rgba(122, 59, 69, 0.18), 0 32px 70px rgba(122, 59, 69, 0.3);
+}
+
+.desk__windows .win:not(.win--focused) .win__bar {
+  filter: saturate(0.55);
+}
+
+.win__body {
+  flex: 1;
+  max-width: none !important;
+  padding: 1.25rem 1.25rem 1.75rem;
+  overflow-y: auto;
+  background: linear-gradient(180deg, var(--win-bg), var(--cream-warm));
+}
+
+/* ---------- Taskbar + start menu ---------- */
+
+.taskbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: var(--taskbar-h);
+  padding: 0 0.75rem;
+  background: var(--win-bg);
+  border-top: 2px solid var(--win-border);
+  font-family: var(--font-os);
+  font-size: 0.78rem;
+}
+
+.taskbar__start {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border: 2px solid var(--win-border);
+  border-radius: 999px;
+  background: var(--rose-dusty);
+  color: var(--burgundy);
+  font: inherit;
+  font-weight: 500;
+  box-shadow: 2px 2px 0 rgba(122, 59, 69, 0.25);
+  cursor: pointer;
+}
+
+.taskbar__start--open {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.taskbar__apps {
+  flex: 1;
+  display: flex;
+  gap: 0.4rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.taskbar__app {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  max-width: 160px;
+  padding: 0.35rem 0.7rem;
+  border: 1.5px solid rgba(122, 59, 69, 0.4);
+  border-radius: 8px;
+  background: var(--cream-warm);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.taskbar__app span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taskbar__app--active {
+  background: var(--butter);
+  border-color: var(--win-border);
+  box-shadow: inset 0 2px 0 rgba(122, 59, 69, 0.12);
+}
+
+.taskbar__clock {
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  background: var(--cream-warm);
+  color: var(--olive);
+  white-space: nowrap;
+}
+
+.startmenu {
+  position: absolute;
+  left: 0.75rem;
+  bottom: calc(var(--taskbar-h) + 0.5rem);
+  z-index: 70;
+  width: min(320px, calc(100% - 1.5rem));
+  max-height: 70%;
+  overflow-y: auto;
+  padding: 0.5rem;
+  border: 2px solid var(--win-border);
+  border-radius: 14px;
+  background: var(--win-bg);
+  box-shadow: var(--win-shadow);
+  animation: win-pop 0.2s ease-out both;
+}
+
+.startmenu[hidden] {
+  display: none;
+}
+
+.startmenu__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.startmenu__item:hover,
+.startmenu__item:focus-visible {
+  background: var(--pink-soft);
+  outline: none;
+}
+
+.startmenu__emoji {
+  font-size: 1.35rem;
+}
+
+.startmenu__item strong {
+  display: block;
+  font-size: 0.88rem;
+}
+
+.startmenu__item small {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-light);
+}
+
+/* Keep the fixed sound / easter-egg buttons clear of the taskbar. */
+body:has(.screen--hub.screen--active) .audio-toggle,
+body:has(.screen--hub.screen--active) .easter-egg-heart {
+  bottom: calc(var(--taskbar-h) + 0.75rem);
+}
+
+/* ---------- Small screens: apps open full-screen ---------- */
+
+@media (max-width: 720px) {
+  .setup__body {
+    flex-direction: column;
+  }
+  .setup__art {
+    flex-basis: 84px;
+    border-right: 0;
+    border-bottom: 2px solid var(--win-border);
+  }
+  .setup__art span {
+    font-size: 2.6rem;
+  }
+
+  .desk__icons {
+    grid-auto-flow: row;
+    grid-template-rows: none;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-columns: auto;
+    grid-auto-rows: 104px;
+    padding-top: 4.5rem;
+  }
+
+  .desk__note {
+    top: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    width: auto;
+    transform: none;
+    border-radius: 4px 4px 4px 16px;
+  }
+
+  .desk__windows .win {
+    inset: 0 !important;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    border-width: 0 0 2px;
+  }
+
+  .win__bar {
+    cursor: default;
+  }
+
+  .taskbar__app span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .setup__art span,
+  .desk__windows .win,
+  .startmenu,
+  .screen--loading .setup {
+    animation: none;
+  }
+}
+
+/* ---------- Loading: photo side panel ---------- */
+
+.setup__art {
+  position: relative;
+  overflow: hidden;
+}
+
+.setup__slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 30%;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+
+.setup__slide--on {
+  opacity: 1;
+}
+
+.setup__art span {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.4rem;
+  font-size: 1.6rem;
+  z-index: 1;
+}
+
+
+/* ---------- Hub: photo wallpaper with a cursor lens ---------- */
+
+.lens-host {
+  --lr: 180px;
+  --lx: 20%;
+  --ly: 20%;
+  --fx: 50%;
+  --fy: 40%;
+  --frx: 30%;
+  --fry: 20%;
+}
+
+.lens__layer {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+/* The lens: a soft-edged circle following the cursor, showing another photo. */
+.lens__reveal {
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  -webkit-mask-image: radial-gradient(circle var(--lr) at var(--lx) var(--ly), #000 52%, transparent 100%);
+  mask-image: radial-gradient(circle var(--lr) at var(--lx) var(--ly), #000 52%, transparent 100%);
+}
+
+.lens__reveal--on {
+  opacity: 1;
+}
+
+/* The wallpaper again, above the lens but only around her face: it is never covered. */
+.lens__keeper {
+  -webkit-mask-image: radial-gradient(ellipse var(--frx) var(--fry) at var(--fx) var(--fy), #000 62%, transparent 100%);
+  mask-image: radial-gradient(ellipse var(--frx) var(--fry) at var(--fx) var(--fy), #000 62%, transparent 100%);
+}
+
+/* Gentle darkening at the edges so icons and the taskbar stay readable */
+.lens__shade {
+  background:
+    linear-gradient(90deg, rgba(29, 22, 21, 0.34), transparent 26%),
+    linear-gradient(180deg, transparent 72%, rgba(29, 22, 21, 0.4));
+}
+
+.lens__ring {
+  position: absolute;
+  left: var(--lx);
+  top: var(--ly);
+  width: calc(var(--lr) * 1.7);
+  height: calc(var(--lr) * 1.7);
+  translate: -50% -50%;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.lens-host--active .lens__ring {
+  opacity: 0.8;
+}
+
+@media (pointer: coarse) {
+  .lens__ring {
+    display: none;
+  }
+}
+
+.desk__note {
+  background: rgba(249, 228, 183, 0.94);
+}
+
+@keyframes surprise-pulse {
+  50% {
+    transform: translateY(-2px);
+    box-shadow: 2px 5px 0 rgba(122, 59, 69, 0.25);
+  }
+}
+
+@media (max-width: 720px) {
+  .taskbar__clock {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lens__reveal {
+    transition: none;
+  }
+}
+
+/* ---------- Explore page: her photo and the lens, nothing else ---------- */
+
+.screen--explore {
+  position: absolute;
+  padding: 0;
+  overflow: hidden;
+  justify-content: flex-start;
+  align-items: stretch;
+  background: #2b201e;
+}
+
+.explore__stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(1.03);
+  transition: opacity 0.9s ease, transform 1.5s ease;
+  touch-action: none;
+}
+
+.explore__stage--ready {
+  opacity: 1;
+  transform: none;
+}
+
+.explore__ui {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  pointer-events: none;
+}
+
+.explore__hint {
+  margin: 0;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(29, 22, 21, 0.45);
+  font-family: var(--font-os);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.92);
+  transition: opacity 0.6s ease;
+}
+
+.explore__hint--gone {
+  opacity: 0;
+}
+
+.explore__go {
+  pointer-events: auto;
+  padding: 0.7rem 1.6rem;
+  border: 2px solid var(--win-border);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--terracotta), var(--rose-deep));
+  color: var(--white);
+  font: inherit;
+  font-family: var(--font-os);
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 rgba(122, 59, 69, 0.35);
+  animation: surprise-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .explore__stage {
+    transition: none;
+  }
+  .explore__go {
+    animation: none;
+  }
+}
+
+/* ---------- Now playing: sits above the taskbar, keeps going between apps ---------- */
+
+.nowplaying {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--taskbar-h) + 0.6rem);
+  translate: -50% 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(600px, calc(100% - 1.5rem));
+  padding: 0.6rem 0.7rem;
+  border: 2px solid var(--win-border);
+  border-radius: 14px;
+  background: var(--win-bg);
+  box-shadow: var(--win-shadow);
+}
+
+.nowplaying[hidden] {
+  display: none;
+}
+
+.nowplaying--in {
+  animation: win-pop 0.3s var(--transition-bounce) both;
+}
+
+.nowplaying__frame {
+  flex: 0 0 auto;
+  width: 220px;
+}
+
+.nowplaying__embed,
+.nowplaying__frame iframe {
+  width: 220px;
+  height: 124px;
+  border: 0;
+  border-radius: 8px;
+  display: block;
+}
+
+.nowplaying__meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.nowplaying__title,
+.nowplaying__artist {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nowplaying__title {
+  font-family: var(--font-os);
+  font-size: 0.78rem;
+  color: var(--burgundy);
+}
+
+.nowplaying__artist {
+  font-family: var(--font-accent);
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--text-light);
+}
+
+.nowplaying__stop {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid var(--win-border);
+  border-radius: 50%;
+  background: var(--cream-warm);
+  color: var(--burgundy);
+  cursor: pointer;
+}
+
+a.nowplaying__out {
+  display: inline-block;
+  margin-top: 0.3rem;
+  font-family: var(--font-os);
+  font-size: 0.66rem;
+  color: var(--rose-deep);
+}
+
+@media (max-width: 720px) {
+  .nowplaying {
+    flex-wrap: wrap;
+  }
+
+  .nowplaying__frame,
+  .nowplaying__embed,
+  .nowplaying__frame iframe {
+    width: 100%;
+  }
+
+  .nowplaying__frame {
+    order: -1;
+  }
+}
+
+/* ---------- Desktop extras: boot, draggable icons, right click menu, days ---------- */
+
+.boot {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, #2b201e, #4a2b30);
+  transition: opacity 0.55s ease;
+}
+
+.boot[hidden] {
+  display: none;
+}
+
+.boot--out {
+  opacity: 0;
+}
+
+.boot__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  color: var(--cream);
+}
+
+.boot__heart {
+  font-size: 2.6rem;
+  animation: setup-beat 1.4s ease-in-out infinite;
+}
+
+.boot__line {
+  margin: 0;
+  min-height: 1.3em;
+  font-family: var(--font-os);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+}
+
+.boot__bar {
+  width: 190px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+
+.boot__bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: var(--rose-dusty);
+  animation: bootFill 1.9s ease-out forwards;
+}
+
+@keyframes bootFill {
+  to { width: 100%; }
+}
+
+/* Icons she has dragged sit wherever she dropped them. */
+.desk__icons {
+  position: relative;
+}
+
+.desk-icon--placed {
+  position: absolute;
+  margin: 0;
+  z-index: 3;
+}
+
+.desk-icon--dragging {
+  z-index: 6;
+  cursor: grabbing;
+  scale: 1.06;
+}
+
+.deskmenu {
+  position: absolute;
+  z-index: 55;
+  min-width: 190px;
+  padding: 0.35rem;
+  border: 2px solid var(--win-border);
+  border-radius: 12px;
+  background: var(--win-bg);
+  box-shadow: var(--win-shadow);
+  animation: win-pop 0.16s ease-out both;
+}
+
+.deskmenu[hidden] {
+  display: none;
+}
+
+.deskmenu__head {
+  margin: 0 0 0.25rem;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1.5px solid rgba(122, 59, 69, 0.2);
+  font-family: var(--font-os);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.deskmenu button {
+  display: block;
+  width: 100%;
+  padding: 0.45rem 0.5rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.deskmenu button:hover {
+  background: var(--pink-soft);
+}
+
+.desk__days {
+  margin: 0.5rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1.5px dashed rgba(122, 59, 69, 0.3);
+  font-family: var(--font-os);
+  font-size: 0.68rem;
+  color: var(--burgundy);
+}
+
+.desk__note--flash {
+  animation: noteFlash 0.9s ease;
+}
+
+@keyframes noteFlash {
+  30% { transform: rotate(2deg) scale(1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot__heart,
+  .boot__bar i,
+  .desk__note--flash,
+  .desk-icon--surprise .desk-icon__tile {
+    animation: none;
+  }
+}

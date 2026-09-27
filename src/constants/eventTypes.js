@@ -48,6 +48,8 @@ export const EVENTS = Object.freeze({
   LOVE_NOTE_VIEW: 'love_note_view',
   QUESTION_ANSWERED: 'question_answered',
   SONG_ADDED: 'song_added',
+  SONG_PLAY: 'song_play',
+  MOVIE_SPIN: 'movie_spin',
   SONG_BULK_IMPORT: 'song_bulk_import',
   MOVIE_ADDED: 'movie_added',
   MOVIE_RATED: 'movie_rated',

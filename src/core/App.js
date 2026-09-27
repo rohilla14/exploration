@@ -3,6 +3,7 @@ import { initFloatingHearts } from './FloatingHearts.js';
 import { ScreenManager } from './ScreenManager.js';
 import { NavControls } from './NavControls.js';
 import { AudioManager } from './AudioManager.js';
+import { initMagneticButtons } from './MagneticButtons.js';
 import { EasterEgg } from './EasterEgg.js';
 import { Confetti } from './Confetti.js';
 import { Analytics } from '../analytics/Analytics.js';
@@ -11,6 +12,7 @@ import { initSmileCounter } from './SmileCounter.js';
 import { initInteractionRecorder } from './InteractionRecorder.js';
 import { registerScreens } from '../screens/index.js';
 import { hasCompletedJourney } from '../utils/journey.js';
+import { CONFIG } from '../config.js';
 
 /**
  * @typedef {object} AppServices
@@ -35,7 +37,10 @@ export class App {
     /** @type {AppServices} */
     const services = { manager, analytics, confetti };
 
-    new AudioManager(analytics);
+    const audio = new AudioManager(analytics);
+    // a soft whoosh whenever the screen changes
+    manager.onChange(() => audio.playWhoosh());
+    initMagneticButtons();
     new EasterEgg(analytics);
 
     registerScreens(services);
@@ -53,8 +58,8 @@ export class App {
 
 /**
  * Dev shortcut: open `/?screen=bouquet` (or any registered screen id) to skip the flow.
- * Return visits (journey already completed once) skip straight to the Hub instead of
- * replaying the whole story from Loading.
+ * When `returnVisitorsSkipToDesktop` is on, return visits (journey already completed once) skip
+ * straight to the Hub instead of replaying the whole story from Loading.
  * @param {ScreenManager} manager
  */
 function resolveStartScreen(manager) {
@@ -69,7 +74,7 @@ function resolveStartScreen(manager) {
     }
   }
 
-  if (hasCompletedJourney() && manager.screens.has(SCREENS.HUB)) {
+  if (CONFIG.returnVisitorsSkipToDesktop && hasCompletedJourney() && manager.screens.has(SCREENS.HUB)) {
     return SCREENS.HUB;
   }
 

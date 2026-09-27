@@ -1,28 +1,9 @@
 import { CONFIG } from '../../config.js';
+import { escapeHtml } from '../../utils/dom.js';
 
-/** Collect unique photo URLs from CONFIG for the wall. */
+/** Every gallery photo, in config order (captions are optional). */
 function collectPhotos() {
-  const seen = new Set();
-  /** @type {string[]} */
-  const urls = [];
-
-  function add(src) {
-    if (!src || typeof src !== 'string' || seen.has(src)) return;
-    seen.add(src);
-    urls.push(src);
-  }
-
-  const photos = CONFIG.photos || {};
-  add(photos.cinematic);
-  add(photos.polaroidA);
-  add(photos.polaroidB);
-  add(photos.plannerAccent);
-  add(photos.plannerWelcome);
-  add(photos.celebration);
-  add(CONFIG.loadingPhoto);
-  add(CONFIG.whyIMadeThisPhoto);
-
-  return urls;
+  return (CONFIG.gallery ?? []).filter((p) => p?.src);
 }
 
 /** @param {HTMLElement} container @param {{ analytics: import('../../analytics/Analytics.js').Analytics }} ctx */
@@ -31,7 +12,7 @@ export function createPhotoWallApp(container, { analytics: _analytics }) {
   /** @type {(() => void) | null} */
   let closeLightbox = null;
 
-  const urls = collectPhotos();
+  const photos = collectPhotos();
 
   container.innerHTML = `
     <div class="hub-app hub-app--photos">
@@ -42,14 +23,17 @@ export function createPhotoWallApp(container, { analytics: _analytics }) {
 
   const wall = container.querySelector('[data-role="wall"]');
 
-  function openLightbox(src) {
+  function openLightbox(src, caption = '') {
     closeLightbox?.();
 
     const overlay = document.createElement('div');
     overlay.className = 'photo-lightbox';
     overlay.innerHTML = `
       <button type="button" class="photo-lightbox__close" aria-label="Close">×</button>
-      <img class="photo-lightbox__img" src="${src}" alt="" />
+      <figure class="photo-lightbox__figure">
+        <img class="photo-lightbox__img" src="${escapeHtml(src)}" alt="${escapeHtml(caption)}" />
+        ${caption ? `<figcaption class="photo-lightbox__caption">${escapeHtml(caption)}</figcaption>` : ''}
+      </figure>
     `;
 
     const remove = () => {
@@ -72,16 +56,17 @@ export function createPhotoWallApp(container, { analytics: _analytics }) {
   }
 
   function render() {
-    if (!urls.length) {
+    if (!photos.length) {
       wall.innerHTML = `<p class="hub-empty">No photos yet.</p>`;
       return;
     }
 
-    wall.innerHTML = urls
+    wall.innerHTML = photos
       .map(
-        (src, i) => `
-      <button type="button" class="photo-wall__item photo-wall__item--${(i % 3) + 1}" data-src="${src}">
-        <img src="${src}" alt="" loading="lazy" />
+        ({ src, caption = '' }, i) => `
+      <button type="button" class="photo-wall__item photo-wall__item--${(i % 3) + 1}" data-src="${escapeHtml(src)}" data-caption="${escapeHtml(caption)}">
+        <img src="${escapeHtml(src)}" alt="${escapeHtml(caption)}" loading="lazy" />
+        ${caption ? `<span class="photo-wall__caption">${escapeHtml(caption)}</span>` : ''}
       </button>
     `
       )
@@ -90,7 +75,7 @@ export function createPhotoWallApp(container, { analytics: _analytics }) {
     wall.querySelectorAll('.photo-wall__item').forEach((btn) => {
       btn.addEventListener('click', () => {
         if (destroyed) return;
-        openLightbox(btn.dataset.src);
+        openLightbox(btn.dataset.src, btn.dataset.caption);
       });
     });
   }

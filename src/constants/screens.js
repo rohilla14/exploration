@@ -2,6 +2,7 @@
 export const SCREENS = Object.freeze({
   LOADING: 'loading',
   SCROLL_STORY: 'scroll-story',
+  EXPLORE: 'explore',
   BIG_ASK: 'big-ask',
   DATE_PLANNER: 'date-planner',
   BOUQUET: 'bouquet',
@@ -13,6 +14,7 @@ export const SCREENS = Object.freeze({
 export const SCREEN_ORDER = Object.freeze([
   SCREENS.LOADING,
   SCREENS.SCROLL_STORY,
+  SCREENS.EXPLORE,
   SCREENS.BIG_ASK,
   SCREENS.DATE_PLANNER,
   SCREENS.BOUQUET,
