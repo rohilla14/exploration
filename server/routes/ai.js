@@ -1,17 +1,26 @@
 import { Router } from 'express';
+import { noDashes } from '../utils/text.js';
 
 export const aiRouter = Router();
 
+/** Trim and cap user-supplied text before it reaches the model prompt. */
+function clip(value, max = 400) {
+  return String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
+}
+
 const FALLBACKS = [
-  'Interesting overlap — ask her what made that answer feel true.',
+  'Interesting overlap, ask her what made that answer feel true.',
   'Hold that for a second. What surprised you most?',
   'Cute. Follow up with: tell me more about that.',
   'That one might deserve a longer walk and no phones.',
-  'Keep going — the next answer might surprise you both.',
+  'Keep going, the next answer might surprise you both.',
 ];
 
 aiRouter.post('/spark', async (req, res) => {
-  const { prompt, herAnswer, myAnswer } = req.body ?? {};
+  const { prompt: rawPrompt, herAnswer: rawHer, myAnswer: rawMine } = req.body ?? {};
+  const prompt = clip(rawPrompt);
+  const herAnswer = clip(rawHer);
+  const myAnswer = clip(rawMine);
   const key = process.env.OPENROUTER_API_KEY;
 
   if (!key) {
@@ -36,7 +45,7 @@ aiRouter.post('/spark', async (req, res) => {
           {
             role: 'system',
             content:
-              'You write one short warm conversation spark (max 18 words) for a private couple app after both answered a deep question. No quotes, no hashtags, no emoji spam.',
+              'You write one short warm conversation spark (max 18 words) for a private couple app after both answered a deep question. No quotes, no hashtags, no emoji spam. Never use dashes or hyphens.',
           },
           {
             role: 'user',
@@ -51,7 +60,7 @@ aiRouter.post('/spark', async (req, res) => {
     }
 
     const data = await response.json();
-    const spark = data?.choices?.[0]?.message?.content?.trim();
+    const spark = noDashes(data?.choices?.[0]?.message?.content);
     res.json({
       spark: spark || FALLBACKS[Math.floor(Math.random() * FALLBACKS.length)],
       source: spark ? 'openrouter' : 'fallback',
@@ -71,7 +80,7 @@ const DIARY_PROMPT_FALLBACKS = [
 ];
 
 aiRouter.post('/diary-prompt', async (req, res) => {
-  const { recentMood } = req.body ?? {};
+  const recentMood = clip(req.body?.recentMood, 16);
   const key = process.env.OPENROUTER_API_KEY;
 
   if (!key) {
@@ -116,7 +125,7 @@ aiRouter.post('/diary-prompt', async (req, res) => {
     }
 
     const data = await response.json();
-    const prompt = data?.choices?.[0]?.message?.content?.trim();
+    const prompt = noDashes(data?.choices?.[0]?.message?.content);
     res.json({
       prompt: prompt || DIARY_PROMPT_FALLBACKS[Math.floor(Math.random() * DIARY_PROMPT_FALLBACKS.length)],
       source: prompt ? 'openrouter' : 'fallback',
@@ -132,14 +141,15 @@ aiRouter.post('/diary-prompt', async (req, res) => {
 
 const THIS_OR_THAT_FALLBACKS = [
   'Bold choice. I respect it.',
-  'Okay noted — strong taste.',
+  'Okay noted, strong taste.',
   'Hmm. Predictable? Maybe. Cute? Yes.',
   'That one says a lot about you.',
   'Interesting. We should unpack that later.',
 ];
 
 aiRouter.post('/this-or-that-reaction', async (req, res) => {
-  const { question, herPick } = req.body ?? {};
+  const question = { a: clip(req.body?.question?.a, 120), b: clip(req.body?.question?.b, 120) };
+  const herPick = clip(req.body?.herPick);
   const key = process.env.OPENROUTER_API_KEY;
 
   if (!key) {
@@ -182,7 +192,7 @@ aiRouter.post('/this-or-that-reaction', async (req, res) => {
     }
 
     const data = await response.json();
-    const reaction = data?.choices?.[0]?.message?.content?.trim();
+    const reaction = noDashes(data?.choices?.[0]?.message?.content);
     res.json({
       reaction:
         reaction || THIS_OR_THAT_FALLBACKS[Math.floor(Math.random() * THIS_OR_THAT_FALLBACKS.length)],

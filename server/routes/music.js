@@ -4,6 +4,19 @@ import { searchTracks, credentialsConfigured } from '../spotify.js';
 
 export const musicRouter = Router();
 
+/**
+ * Pull the video id out of whatever YouTube link was pasted, or accept a bare id.
+ * Returns null when there is nothing usable, so a bad paste never breaks the row.
+ * @param {unknown} value
+ */
+function parseYoutubeId(value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return null;
+  if (/^[\w-]{11}$/.test(raw)) return raw;
+  const m = raw.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
 musicRouter.get('/search', async (req, res) => {
   const { q } = req.query;
 
@@ -28,11 +41,11 @@ musicRouter.get('/search', async (req, res) => {
   }
 });
 
-musicRouter.get('/songs', (_req, res) => {
-  res.json(db.prepare('SELECT * FROM songs ORDER BY id DESC').all());
+musicRouter.get('/songs', async (_req, res) => {
+  res.json(await db.prepare('SELECT * FROM songs ORDER BY id DESC').all());
 });
 
-musicRouter.post('/songs', (req, res) => {
+musicRouter.post('/songs', async (req, res) => {
   const {
     spotifyId = null,
     title,
@@ -41,6 +54,7 @@ musicRouter.post('/songs', (req, res) => {
     previewUrl = null,
     addedBy = 'her',
     note = null,
+    youtubeId = null,
   } = req.body ?? {};
 
   if (!title?.trim()) {
@@ -52,14 +66,25 @@ musicRouter.post('/songs', (req, res) => {
     return;
   }
 
-  const result = db
+  const result = await db
     .prepare(
-      `INSERT INTO songs (spotify_id, title, artist, album_art, preview_url, added_by, note)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO songs (spotify_id, title, artist, album_art, preview_url, added_by, note, youtube_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     )
-    .run(spotifyId, title.trim(), artist, albumArt, previewUrl, addedBy, note);
+    .run(
+      spotifyId,
+      title.trim(),
+      artist,
+      albumArt,
+      previewUrl,
+      addedBy,
+      note,
+      parseYoutubeId(youtubeId)
+    );
 
-  res.status(201).json(db.prepare('SELECT * FROM songs WHERE id = ?').get(result.lastInsertRowid));
+  res
+    .status(201)
+    .json(await db.prepare('SELECT * FROM songs WHERE id = ?').get(result.lastInsertRowid));
 });
 
 musicRouter.post('/songs/bulk-import', async (req, res) => {
@@ -72,7 +97,8 @@ musicRouter.post('/songs/bulk-import', async (req, res) => {
 
   if (!credentialsConfigured()) {
     res.status(503).json({
-      error: 'Spotify search is not configured yet. Add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET to server/.env.',
+      error:
+        'Spotify search is not configured yet. Add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET to server/.env.',
     });
     return;
   }
@@ -95,7 +121,14 @@ musicRouter.post('/songs/bulk-import', async (req, res) => {
         notFound.push(query);
         continue;
       }
-      insert.run(match.spotifyId, match.title, match.artist, match.albumArt, match.previewUrl, addedBy);
+      await insert.run(
+        match.spotifyId,
+        match.title,
+        match.artist,
+        match.albumArt,
+        match.previewUrl,
+        addedBy
+      );
       added.push(match);
     } catch {
       notFound.push(query);
@@ -105,7 +138,7 @@ musicRouter.post('/songs/bulk-import', async (req, res) => {
   res.status(201).json({ added, notFound });
 });
 
-musicRouter.delete('/songs/:id', (req, res) => {
-  db.prepare('DELETE FROM songs WHERE id = ?').run(req.params.id);
+musicRouter.delete('/songs/:id', async (req, res) => {
+  await db.prepare('DELETE FROM songs WHERE id = ?').run(req.params.id);
   res.status(204).end();
 });

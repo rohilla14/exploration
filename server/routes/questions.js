@@ -19,16 +19,16 @@ function rowsWithAnswers() {
 }
 
 /** Public list redacts my_answer until she has answered (spoilers). Admin sees all. */
-questionsRouter.get('/', (req, res) => {
+questionsRouter.get('/', async (req, res) => {
   const admin = isAdminAuthenticated(req);
-  const rows = rowsWithAnswers().map((row) => {
+  const rows = (await rowsWithAnswers()).map((row) => {
     if (admin || row.her_answer) return row;
     return { ...row, my_answer: null };
   });
   res.json(rows);
 });
 
-questionsRouter.post('/', (req, res) => {
+questionsRouter.post('/', async (req, res) => {
   const { prompt, myAnswer, depth = 'closer' } = req.body ?? {};
 
   if (!prompt?.trim() || !myAnswer?.trim()) {
@@ -38,7 +38,7 @@ questionsRouter.post('/', (req, res) => {
 
   const safeDepth = ['light', 'closer', 'deep'].includes(depth) ? depth : 'closer';
 
-  const result = db
+  const result = await db
     .prepare('INSERT INTO questions (prompt, my_answer, depth) VALUES (?, ?, ?)')
     .run(prompt.trim(), myAnswer.trim(), safeDepth);
 
@@ -50,7 +50,7 @@ questionsRouter.post('/', (req, res) => {
   });
 });
 
-questionsRouter.post('/:id/answer', (req, res) => {
+questionsRouter.post('/:id/answer', async (req, res) => {
   const { id } = req.params;
   const { herAnswer } = req.body ?? {};
 
@@ -59,24 +59,26 @@ questionsRouter.post('/:id/answer', (req, res) => {
     return;
   }
 
-  const question = db.prepare('SELECT * FROM questions WHERE id = ?').get(id);
+  const question = await db.prepare('SELECT * FROM questions WHERE id = ?').get(id);
   if (!question) {
     res.status(404).json({ error: 'Question not found' });
     return;
   }
 
-  db.prepare(
-    `INSERT INTO question_answers (question_id, her_answer)
-     VALUES (?, ?)
-     ON CONFLICT(question_id) DO UPDATE SET
-       her_answer = excluded.her_answer,
-       answered_at = datetime('now')`
-  ).run(id, herAnswer.trim());
+  await db
+    .prepare(
+      `INSERT INTO question_answers (question_id, her_answer)
+       VALUES (?, ?)
+       ON CONFLICT(question_id) DO UPDATE SET
+         her_answer = excluded.her_answer,
+         answered_at = datetime('now')`
+    )
+    .run(id, herAnswer.trim());
 
   res.status(201).json({ myAnswer: question.my_answer, herAnswer: herAnswer.trim() });
 });
 
-questionsRouter.delete('/:id', (req, res) => {
-  db.prepare('DELETE FROM questions WHERE id = ?').run(req.params.id);
+questionsRouter.delete('/:id', async (req, res) => {
+  await db.prepare('DELETE FROM questions WHERE id = ?').run(req.params.id);
   res.status(204).end();
 });

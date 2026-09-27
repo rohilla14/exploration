@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "concurrently -n web,api -c magenta,cyan \"vite\" \"node server/index.js\"",
     "dev:web": "vite",
@@ -11,10 +14,14 @@
     "preview": "vite preview",
     "preview:prod": "npm run build && node server/index.js",
     "start": "node server/index.js",
-    "share": "bash scripts/share.sh"
+    "share": "bash scripts/share.sh",
+    "test": "node --test server/test/api.test.js",
+    "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.js\" \"server/**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.js\" \"server/**/*.js\""
   },
   "dependencies": {
-    "better-sqlite3": "^11.9.1",
+    "@libsql/client": "^0.18.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
@@ -22,7 +29,11 @@
     "lenis": "^1.3.25"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "concurrently": "^9.1.2",
+    "eslint": "^10.11.0",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.8",
     "vite": "^8.1.1"
   }
 }

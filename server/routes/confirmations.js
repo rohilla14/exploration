@@ -7,10 +7,10 @@ export const confirmationsRouter = Router();
 confirmationsRouter.post(
   '/',
   requireFields(['sessionId', 'selectedDate', 'selectedTime']),
-  (req, res) => {
+  async (req, res) => {
     const { sessionId, selectedDate, selectedTime, activities } = req.body ?? {};
 
-    const session = db.prepare('SELECT id FROM sessions WHERE id = ?').get(sessionId);
+    const session = await db.prepare('SELECT id FROM sessions WHERE id = ?').get(sessionId);
     if (!session) {
       res.status(404).json({ error: 'Session not found' });
       return;
@@ -19,26 +19,28 @@ confirmationsRouter.post(
     const activitiesJson =
       Array.isArray(activities) && activities.length ? JSON.stringify(activities) : null;
 
-    db.prepare(
-      `INSERT INTO date_confirmations (session_id, selected_date, selected_time, activities)
-       VALUES (?, ?, ?, ?)
-       ON CONFLICT(session_id) DO UPDATE SET
-         selected_date = excluded.selected_date,
-         selected_time = excluded.selected_time,
-         activities = excluded.activities,
-         confirmed_at = datetime('now')`
-    ).run(sessionId, selectedDate, selectedTime, activitiesJson);
+    await db
+      .prepare(
+        `INSERT INTO date_confirmations (session_id, selected_date, selected_time, activities)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(session_id) DO UPDATE SET
+           selected_date = excluded.selected_date,
+           selected_time = excluded.selected_time,
+           activities = excluded.activities,
+           confirmed_at = datetime('now')`
+      )
+      .run(sessionId, selectedDate, selectedTime, activitiesJson);
 
-    db.prepare(`UPDATE sessions SET completed = 1, ended_at = datetime('now') WHERE id = ?`).run(
-      sessionId
-    );
+    await db
+      .prepare(`UPDATE sessions SET completed = 1, ended_at = datetime('now') WHERE id = ?`)
+      .run(sessionId);
 
     res.status(201).json({ ok: true });
   }
 );
 
-confirmationsRouter.get('/', (_req, res) => {
-  const rows = db
+confirmationsRouter.get('/', async (_req, res) => {
+  const rows = await db
     .prepare(
       `SELECT d.*, s.started_at, s.user_agent
        FROM date_confirmations d

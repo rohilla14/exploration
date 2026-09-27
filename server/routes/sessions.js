@@ -4,7 +4,7 @@ import { db } from '../db.js';
 
 export const sessionsRouter = Router();
 
-sessionsRouter.post('/', (req, res) => {
+sessionsRouter.post('/', async (req, res) => {
   const id = randomUUID();
   const {
     userAgent = null,
@@ -13,25 +13,21 @@ sessionsRouter.post('/', (req, res) => {
     metadata = null,
   } = req.body ?? {};
 
-  db.prepare(
-    `INSERT INTO sessions (id, started_at, user_agent, viewport_width, viewport_height, metadata)
-     VALUES (?, datetime('now'), ?, ?, ?, ?)`
-  ).run(
-    id,
-    userAgent,
-    viewportWidth,
-    viewportHeight,
-    metadata ? JSON.stringify(metadata) : null
-  );
+  await db
+    .prepare(
+      `INSERT INTO sessions (id, started_at, user_agent, viewport_width, viewport_height, metadata)
+       VALUES (?, datetime('now'), ?, ?, ?, ?)`
+    )
+    .run(id, userAgent, viewportWidth, viewportHeight, metadata ? JSON.stringify(metadata) : null);
 
   res.status(201).json({ sessionId: id });
 });
 
-sessionsRouter.patch('/:sessionId', (req, res) => {
+sessionsRouter.patch('/:sessionId', async (req, res) => {
   const { sessionId } = req.params;
   const { completed, lastScreenId } = req.body ?? {};
 
-  const session = db.prepare('SELECT id FROM sessions WHERE id = ?').get(sessionId);
+  const session = await db.prepare('SELECT id FROM sessions WHERE id = ?').get(sessionId);
   if (!session) {
     res.status(404).json({ error: 'Session not found' });
     return;
@@ -58,13 +54,13 @@ sessionsRouter.patch('/:sessionId', (req, res) => {
   }
 
   values.push(sessionId);
-  db.prepare(`UPDATE sessions SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+  await db.prepare(`UPDATE sessions SET ${updates.join(', ')} WHERE id = ?`).run(...values);
 
   res.json({ ok: true });
 });
 
-sessionsRouter.get('/', (_req, res) => {
-  const rows = db
+sessionsRouter.get('/', async (_req, res) => {
+  const rows = await db
     .prepare(
       `SELECT s.*,
         (SELECT COUNT(*) FROM events e WHERE e.session_id = s.id) AS event_count,
@@ -78,23 +74,23 @@ sessionsRouter.get('/', (_req, res) => {
   res.json(rows);
 });
 
-sessionsRouter.get('/:sessionId', (req, res) => {
+sessionsRouter.get('/:sessionId', async (req, res) => {
   const { sessionId } = req.params;
 
-  const session = db.prepare('SELECT * FROM sessions WHERE id = ?').get(sessionId);
+  const session = await db.prepare('SELECT * FROM sessions WHERE id = ?').get(sessionId);
   if (!session) {
     res.status(404).json({ error: 'Session not found' });
     return;
   }
 
-  const events = db
+  const events = await db
     .prepare(
       `SELECT id, screen_id, event_type, payload, client_timestamp, server_timestamp
        FROM events WHERE session_id = ? ORDER BY id ASC`
     )
     .all(sessionId);
 
-  const confirmation = db
+  const confirmation = await db
     .prepare('SELECT * FROM date_confirmations WHERE session_id = ?')
     .get(sessionId);
 

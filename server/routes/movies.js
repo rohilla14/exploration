@@ -4,9 +4,9 @@ import { searchMovies, credentialsConfigured } from '../tmdb.js';
 
 export const moviesRouter = Router();
 
-function moviesWithRatings() {
-  const movies = db.prepare('SELECT * FROM movies ORDER BY id DESC').all();
-  const ratings = db.prepare('SELECT * FROM movie_ratings').all();
+async function moviesWithRatings() {
+  const movies = await db.prepare('SELECT * FROM movies ORDER BY id DESC').all();
+  const ratings = await db.prepare('SELECT * FROM movie_ratings').all();
 
   return movies.map((m) => ({
     ...m,
@@ -38,11 +38,11 @@ moviesRouter.get('/search', async (req, res) => {
   }
 });
 
-moviesRouter.get('/', (_req, res) => {
-  res.json(moviesWithRatings());
+moviesRouter.get('/', async (_req, res) => {
+  res.json(await moviesWithRatings());
 });
 
-moviesRouter.post('/', (req, res) => {
+moviesRouter.post('/', async (req, res) => {
   const {
     title,
     note = null,
@@ -61,18 +61,18 @@ moviesRouter.post('/', (req, res) => {
     return;
   }
 
-  const result = db
+  const result = await db
     .prepare(
       `INSERT INTO movies (title, note, poster_emoji, tmdb_id, poster_path, added_by)
        VALUES (?, ?, ?, ?, ?, ?)`
     )
     .run(title.trim(), note, posterEmoji, tmdbId, posterPath, addedBy);
 
-  const row = db.prepare('SELECT * FROM movies WHERE id = ?').get(result.lastInsertRowid);
+  const row = await db.prepare('SELECT * FROM movies WHERE id = ?').get(result.lastInsertRowid);
   res.status(201).json({ ...row, ratings: [] });
 });
 
-moviesRouter.post('/:id/rate', (req, res) => {
+moviesRouter.post('/:id/rate', async (req, res) => {
   const { id } = req.params;
   const { rater, rating, note = null } = req.body ?? {};
 
@@ -86,26 +86,28 @@ moviesRouter.post('/:id/rate', (req, res) => {
     return;
   }
 
-  const movie = db.prepare('SELECT id FROM movies WHERE id = ?').get(id);
+  const movie = await db.prepare('SELECT id FROM movies WHERE id = ?').get(id);
   if (!movie) {
     res.status(404).json({ error: 'Movie not found' });
     return;
   }
 
-  db.prepare(
-    `INSERT INTO movie_ratings (movie_id, rater, rating, note)
-     VALUES (?, ?, ?, ?)
-     ON CONFLICT(movie_id, rater) DO UPDATE SET
-       rating = excluded.rating,
-       note = excluded.note,
-       rated_at = datetime('now')`
-  ).run(id, rater, ratingNum, note);
+  await db
+    .prepare(
+      `INSERT INTO movie_ratings (movie_id, rater, rating, note)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(movie_id, rater) DO UPDATE SET
+         rating = excluded.rating,
+         note = excluded.note,
+         rated_at = datetime('now')`
+    )
+    .run(id, rater, ratingNum, note);
 
-  const ratings = db.prepare('SELECT * FROM movie_ratings WHERE movie_id = ?').all(id);
+  const ratings = await db.prepare('SELECT * FROM movie_ratings WHERE movie_id = ?').all(id);
   res.status(201).json({ ratings });
 });
 
-moviesRouter.delete('/:id', (req, res) => {
-  db.prepare('DELETE FROM movies WHERE id = ?').run(req.params.id);
+moviesRouter.delete('/:id', async (req, res) => {
+  await db.prepare('DELETE FROM movies WHERE id = ?').run(req.params.id);
   res.status(204).end();
 });

@@ -4,14 +4,12 @@ const QUESTIONS = [
   {
     depth: 'light',
     prompt: "What's a tiny thing I do that makes you feel cared for?",
-    myAnswer:
-      'When you remember the small details I mentioned once and bring them back later.',
+    myAnswer: 'When you remember the small details I mentioned once and bring them back later.',
   },
   {
     depth: 'light',
     prompt: 'What song feels like "us" even if we haven\'t named it yet?',
-    myAnswer:
-      "Still deciding — but I know it when I hear soft guitars and your laugh in my head.",
+    myAnswer: 'Still deciding, but I know it when I hear soft guitars and your laugh in my head.',
   },
   {
     depth: 'closer',
@@ -22,8 +20,7 @@ const QUESTIONS = [
   {
     depth: 'closer',
     prompt: "What's a fear you don't say out loud much, that you wish someone held gently?",
-    myAnswer:
-      "That I'll get the timing wrong — too much or too late — with people I care about.",
+    myAnswer: "That I'll get the timing wrong, too much or too late, with people I care about.",
   },
   {
     depth: 'closer',
@@ -33,13 +30,13 @@ const QUESTIONS = [
   {
     depth: 'deep',
     prompt: 'What do you want us to still be laughing about in ten years?',
-    myAnswer:
-      'How seriously we took the little moments that ended up becoming everything.',
+    myAnswer: 'How seriously we took the little moments that ended up becoming everything.',
   },
   {
     depth: 'deep',
-    prompt: "What's something you've never quite found the words for, that you want understood anyway?",
-    myAnswer: 'How much quiet loyalty means to me — showing up without a speech.',
+    prompt:
+      "What's something you've never quite found the words for, that you want understood anyway?",
+    myAnswer: 'How much quiet loyalty means to me, showing up without a speech.',
   },
   {
     depth: 'deep',
@@ -57,7 +54,8 @@ But then again, maybe we met at exactly the right time. Maybe I needed to become
   },
   {
     depth: 'light',
-    prompt: 'If we could pause the world for a day and do anything together, what would you want to do?',
+    prompt:
+      'If we could pause the world for a day and do anything together, what would you want to do?',
     myAnswer: `I'd make you chai in the morning. Then find somewhere with the loudest, most overwhelming nature around us: mountains, water, wind, something that makes you feel small in the best way. And we'd just sit there. No agenda. Just that.
 
 I'd want to watch you in a moment where you're completely at peace. No phone, no noise from the world. Just you being calm.
@@ -76,6 +74,12 @@ I need you to call me out when I'm being an idiot. Not gently, actually call me 
 And share everything with me: your happy, your sad, your random 2am thoughts, the things you almost texted and then didn't. I want those too.
 
 I function better when you're in my life. I think I always knew that. It just took me a while to admit it.`,
+  },
+  {
+    depth: 'deep',
+    prompt: 'If you had to describe our love in one sentence, what would it be?',
+    // Placeholder in your voice: replace it with your own answer from the admin panel.
+    myAnswer: "I'm still finding the right sentence. Ask me again in person.",
   },
   {
     depth: 'closer',
@@ -126,36 +130,83 @@ const MOVIES = [
 ];
 
 const SONGS = [
+  // youtubeId is the official upload for each one, so every song plays in full.
   {
     title: 'Until I Found You',
     artist: 'Stephen Sanchez',
     note: 'soft',
     addedBy: 'you',
+    youtubeId: 'GxldQ9eX2wo',
   },
   {
     title: 'Lover',
     artist: 'Taylor Swift',
     note: "obvious and I'm not sorry",
     addedBy: 'you',
+    youtubeId: '-BjZmE2gtdo',
   },
   {
     title: 'Khairiyat',
     artist: 'Arijit Singh',
-    note: 'for quiet evenings',
+    note: 'for the long drives',
     addedBy: 'you',
+    youtubeId: 'DMRRC0rwO_I',
   },
   {
     title: 'Die With A Smile',
     artist: 'Lady Gaga & Bruno Mars',
-    note: 'dramatic on purpose',
+    note: 'this one is ours now',
     addedBy: 'you',
+    youtubeId: 'kPa7bsKwL-c',
+  },
+  {
+    title: 'Lost',
+    artist: 'Frank Ocean',
+    note: 'the one that was playing when I knew',
+    addedBy: 'you',
+    youtubeId: 'J3DWAJGaf7o',
+  },
+  {
+    title: 'Apocalypse',
+    artist: 'Cigarettes After Sex',
+    note: 'put this on and say nothing',
+    addedBy: 'you',
+    youtubeId: 'sElE_BfQ67s',
+  },
+  {
+    title: 'Sweet',
+    artist: 'Cigarettes After Sex',
+    note: 'slow, for late nights',
+    addedBy: 'you',
+    youtubeId: 'pZ31pyTZdh0',
+  },
+  {
+    title: 'Kesariya',
+    artist: 'Arijit Singh',
+    note: 'you already know',
+    addedBy: 'you',
+    youtubeId: '6RdS6wLu7RY',
+  },
+  {
+    title: 'Agar Tum Saath Ho',
+    artist: 'Arijit Singh & Alka Yagnik',
+    note: 'the one that gets me every time',
+    addedBy: 'you',
+    youtubeId: 'xRb8hxwN5zc',
+  },
+  {
+    title: 'Tum Hi Ho',
+    artist: 'Arijit Singh',
+    note: 'no explanation needed',
+    addedBy: 'you',
+    youtubeId: 'IJq0yyWug1k',
   },
 ];
 
 const NOTES = [
   {
     kind: 'memory',
-    body: 'That night we walked around talking about nothing and everything — I did not want it to end.',
+    body: 'That night we walked around talking about nothing and everything, I did not want it to end.',
   },
   {
     kind: 'memory',
@@ -172,75 +223,95 @@ const NOTES = [
 ];
 
 /** Seed starter content; questions are idempotent per prompt. */
-export function seedIfEmpty() {
-  const insert = db.prepare(
-    'INSERT INTO questions (prompt, my_answer, depth) VALUES (?, ?, ?)'
+/** Long dashes never show up in what she reads, including text saved in the database earlier. */
+async function stripDashesFromStoredText() {
+  const targets = [
+    ['questions', 'prompt'],
+    ['questions', 'my_answer'],
+    ['love_notes', 'body'],
+    ['songs', 'note'],
+    ['movies', 'note'],
+    ['horoscopes', 'personal'],
+    ['horoscopes', 'together'],
+  ];
+  for (const [table, col] of targets) {
+    await db
+      .prepare(
+        `UPDATE ${table}
+           SET ${col} = replace(replace(replace(${col}, ' — ', ', '), ' – ', ', '), '—', ', ')
+         WHERE ${col} LIKE '%—%' OR ${col} LIKE '%–%'`
+      )
+      .run();
+  }
+}
+
+/** Fill in YouTube links on songs that were seeded before links existed, and add any new ones. */
+async function topUpSongLinks() {
+  const setLink = db.prepare(
+    'UPDATE songs SET youtube_id = ? WHERE title = ? AND youtube_id IS NULL'
   );
+  const exists = db.prepare('SELECT id FROM songs WHERE title = ?');
+  const add = db.prepare(
+    'INSERT INTO songs (title, artist, added_by, note, youtube_id) VALUES (?, ?, ?, ?, ?)'
+  );
+  for (const s of SONGS) {
+    if (await exists.get(s.title)) await setLink.run(s.youtubeId ?? null, s.title);
+    else await add.run(s.title, s.artist, s.addedBy, s.note, s.youtubeId ?? null);
+  }
+}
+
+export async function seedIfEmpty() {
+  await topUpSongLinks();
+  await stripDashesFromStoredText();
+  const insert = db.prepare('INSERT INTO questions (prompt, my_answer, depth) VALUES (?, ?, ?)');
   const updateAnswer = db.prepare(
     'UPDATE questions SET my_answer = ? WHERE prompt = ? AND my_answer IS NULL'
   );
   const existsCheck = db.prepare('SELECT id, my_answer FROM questions WHERE prompt = ?');
   let inserted = 0;
   let updated = 0;
-  const tx = db.transaction(() => {
-    QUESTIONS.forEach((q) => {
-      const existing = existsCheck.get(q.prompt);
-      if (!existing) {
-        insert.run(q.prompt, q.myAnswer, q.depth);
-        inserted += 1;
-      } else if (existing.my_answer == null && q.myAnswer != null) {
-        updateAnswer.run(q.myAnswer, q.prompt);
-        updated += 1;
-      }
-    });
-  });
-  tx();
-  console.log(`[seed] Questions: ${inserted} inserted, ${updated} updated`);
+  for (const q of QUESTIONS) {
+    const existing = await existsCheck.get(q.prompt);
+    if (!existing) {
+      await insert.run(q.prompt, q.myAnswer, q.depth);
+      inserted += 1;
+    } else if (existing.my_answer == null && q.myAnswer != null) {
+      await updateAnswer.run(q.myAnswer, q.prompt);
+      updated += 1;
+    }
+  }
+  if (inserted || updated) {
+    console.log(`[seed] Questions: ${inserted} inserted, ${updated} updated`);
+  }
 
-  const allPrompts = db
-    .prepare(
-      `SELECT prompt FROM questions
-       ORDER BY
-         CASE depth WHEN 'light' THEN 1 WHEN 'closer' THEN 2 ELSE 3 END,
-         id ASC`
-    )
-    .all();
-  console.log(`[seed] Deep Dive prompts (${allPrompts.length}):`);
-  allPrompts.forEach((row, i) => {
-    console.log(`  ${i + 1}. ${row.prompt}`);
-  });
-
-  const mCount = db.prepare('SELECT COUNT(*) AS c FROM movies').get().c;
+  const mCount = (await db.prepare('SELECT COUNT(*) AS c FROM movies').get()).c;
   if (mCount === 0) {
     const insertMovies = db.prepare(
       'INSERT INTO movies (title, note, poster_emoji, added_by) VALUES (?, ?, ?, ?)'
     );
-    const moviesTx = db.transaction(() => {
-      MOVIES.forEach((m) => insertMovies.run(m.title, m.note, m.posterEmoji, 'you'));
-    });
-    moviesTx();
+    for (const m of MOVIES) {
+      await insertMovies.run(m.title, m.note, m.posterEmoji, 'you');
+    }
     console.log(`[seed] Added ${MOVIES.length} movies`);
   }
 
-  const sCount = db.prepare('SELECT COUNT(*) AS c FROM songs').get().c;
+  const sCount = (await db.prepare('SELECT COUNT(*) AS c FROM songs').get()).c;
   if (sCount === 0) {
     const insertSongs = db.prepare(
-      'INSERT INTO songs (title, artist, added_by, note) VALUES (?, ?, ?, ?)'
+      'INSERT INTO songs (title, artist, added_by, note, youtube_id) VALUES (?, ?, ?, ?, ?)'
     );
-    const songsTx = db.transaction(() => {
-      SONGS.forEach((s) => insertSongs.run(s.title, s.artist, s.addedBy, s.note));
-    });
-    songsTx();
+    for (const s of SONGS) {
+      await insertSongs.run(s.title, s.artist, s.addedBy, s.note, s.youtubeId ?? null);
+    }
     console.log(`[seed] Added ${SONGS.length} songs`);
   }
 
-  const nCount = db.prepare('SELECT COUNT(*) AS c FROM love_notes').get().c;
+  const nCount = (await db.prepare('SELECT COUNT(*) AS c FROM love_notes').get()).c;
   if (nCount === 0) {
     const insertNotes = db.prepare('INSERT INTO love_notes (kind, body) VALUES (?, ?)');
-    const notesTx = db.transaction(() => {
-      NOTES.forEach((n) => insertNotes.run(n.kind, n.body));
-    });
-    notesTx();
+    for (const n of NOTES) {
+      await insertNotes.run(n.kind, n.body);
+    }
     console.log(`[seed] Added ${NOTES.length} love notes`);
   }
 }

@@ -1,36 +1,37 @@
 import { Router } from 'express';
 import { db } from '../db.js';
+import { noDashes } from '../utils/text.js';
 
 export const horoscopeRouter = Router();
 
 const PERSONAL_FALLBACKS = [
-  'Something soft settles into place today — a small certainty you have been circling without naming. Someone has been turning your words over carefully, the way you might hold a warm mug with both hands. You do not need to rush toward clarity; it is already walking toward you. Let the afternoon be quieter than your mind expects.',
+  'Something soft settles into place today, a small certainty you have been circling without naming. Someone has been turning your words over carefully, the way you might hold a warm mug with both hands. You do not need to rush toward clarity; it is already walking toward you. Let the afternoon be quieter than your mind expects.',
   'A familiar restlessness shows up before lunch, then eases once you stop negotiating with it. Somewhere, someone is smiling at a detail only you would notice, and that thought alone is enough to warm a room. Trust the slower choice when two options appear. Your steadiness is doing more work than you give it credit for.',
-  'Today favors honesty that does not need a speech — a look, a message left unfinished, a pause that says enough. Someone close has been carrying a quiet affection that has nowhere urgent to go, only somewhere true. You might feel slightly more seen than usual. That is not coincidence; that is attention finding its way home.',
+  'Today favors honesty that does not need a speech, a look, a message left unfinished, a pause that says enough. Someone close has been carrying a quiet affection that has nowhere urgent to go, only somewhere true. You might feel slightly more seen than usual. That is not coincidence; that is attention finding its way home.',
   'The day asks less of your performance and more of your presence. You will know the difference by how your shoulders drop. Someone has been thinking about you in the soft hours, rehearsing nothing, wanting only the ordinary version of you. Give that version a little room. It is the one worth keeping.',
   'There is a gentle pull toward what feels rooted rather than impressive. Follow it without explaining yourself. Someone has noticed the way you make space for other people, and it has lodged somewhere tender. You do not have to earn the ease arriving later today. It was already meant for you.',
 ];
 
 const TOGETHER_FALLBACKS = [
-  'Something between you keeps choosing the long way around — not out of hesitation, but because the scenic route is where you both breathe easier. Today that patience looks like wisdom. A shared glance will do more than a plan. Keep leaving a little room for the unscripted good.',
-  'The connection feels less like a spark and more like a lamp left on in another room — steady, waiting, quietly useful. Today favors small returns: a reply that arrives sooner, a joke that lands softer. You do not need a milestone. You need the ordinary minutes you already know how to share.',
+  'Something between you keeps choosing the long way around, not out of hesitation, but because the scenic route is where you both breathe easier. Today that patience looks like wisdom. A shared glance will do more than a plan. Keep leaving a little room for the unscripted good.',
+  'The connection feels less like a spark and more like a lamp left on in another room, steady, waiting, quietly useful. Today favors small returns: a reply that arrives sooner, a joke that lands softer. You do not need a milestone. You need the ordinary minutes you already know how to share.',
   'There is a knowing between you that does not require proof, only practice. Today offers a chance to practice without trying so hard. One of you will reach first in a way that feels almost accidental. Catch it gently. The day is rooting for the version of you that stays curious.',
   'Whatever is building here prefers honesty over performance. Today that looks like saying the true thing a beat earlier than feels safe. The bond answers in kind. You will notice how easy silence becomes when neither of you is performing. Hold that ease; it is the real work.',
-  'The day leans toward the two of you without announcing itself. A shared rhythm shows up in the small logistics — timing, tone, the joke you both almost tell. Let it be enough. Something quiet is on your side, and it does not need an audience to keep going.',
+  'The day leans toward the two of you without announcing itself. A shared rhythm shows up in the small logistics, timing, tone, the joke you both almost tell. Let it be enough. Something quiet is on your side, and it does not need an audience to keep going.',
 ];
 
 const PERSONAL_SYSTEM =
-  "You write a short daily horoscope for a Taurus woman. Exactly 3-4 sentences. Warm, grounded, specific — never vague fortune-cookie filler. Somewhere in it, refer obliquely to a person in her life who has been thinking about her: never name them, never use 'he' or 'boyfriend' or 'partner', just 'someone'. Make it feel like the stars noticed something she hasn't said out loud yet. No emoji, no hashtags, no phrases like 'the stars say' or 'the universe wants'.";
+  "You write a short daily horoscope for a Taurus woman. Exactly 3 to 4 sentences. Never use dashes or hyphens of any kind. Warm, grounded, specific, never vague fortune-cookie filler. Somewhere in it, refer obliquely to a person in her life who has been thinking about her: never name them, never use 'he' or 'boyfriend' or 'partner', just 'someone'. Make it feel like the stars noticed something she hasn't said out loud yet. No emoji, no hashtags, no phrases like 'the stars say' or 'the universe wants'.";
 
 const TOGETHER_SYSTEM =
-  "You write a short daily reading about the connection between a Taurus woman and a Virgo man. Exactly 3-4 sentences. Both are earth signs — grounded, loyal, slow to open up, steady once they do. Draw on that real compatibility rather than generic astrology filler: the patience between them, the way neither rushes, the quiet consistency. Warm and a little knowing, never cheesy or saccharine. Written as though something is quietly rooting for them. No emoji, no hashtags, no phrases like 'the stars say' or 'the universe wants'.";
+  "You write a short daily reading about the connection between a Taurus woman and a Virgo man. Exactly 3 to 4 sentences. Never use dashes or hyphens of any kind. Both are earth signs, grounded, loyal, slow to open up, steady once they do. Draw on that real compatibility rather than generic astrology filler: the patience between them, the way neither rushes, the quiet consistency. Warm and a little knowing, never cheesy or saccharine. Written as though something is quietly rooting for them. No emoji, no hashtags, no phrases like 'the stars say' or 'the universe wants'.";
 
 /** Today's date as YYYY-MM-DD in Asia/Kolkata. */
 export function todayIst() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
 }
 
-/** Day-of-year (1–366) for a YYYY-MM-DD string — stable fallback index. */
+/** Day-of-year (1–366) for a YYYY-MM-DD string, stable fallback index. */
 function dayOfYear(dateStr) {
   const [y, m, d] = dateStr.split('-').map(Number);
   const utc = Date.UTC(y, m - 1, d);
@@ -47,16 +48,21 @@ function pickFallbacks(dateStr) {
   };
 }
 
-function getCached(dateStr) {
-  return db.prepare('SELECT date, personal, together, created_at FROM horoscopes WHERE date = ?').get(dateStr);
+async function getCached(dateStr) {
+  const row = await db
+    .prepare('SELECT date, personal, together, created_at FROM horoscopes WHERE date = ?')
+    .get(dateStr);
+  return row && { ...row, personal: noDashes(row.personal), together: noDashes(row.together) };
 }
 
-function saveReading(dateStr, personal, together) {
-  db.prepare(
-    `INSERT INTO horoscopes (date, personal, together)
-     VALUES (?, ?, ?)
-     ON CONFLICT(date) DO NOTHING`
-  ).run(dateStr, personal, together);
+async function saveReading(dateStr, personal, together) {
+  await db
+    .prepare(
+      `INSERT INTO horoscopes (date, personal, together)
+       VALUES (?, ?, ?)
+       ON CONFLICT(date) DO NOTHING`
+    )
+    .run(dateStr, personal, together);
   return getCached(dateStr);
 }
 
@@ -71,8 +77,8 @@ function parseReadings(raw) {
   const cleaned = stripFence(raw);
   try {
     const parsed = JSON.parse(cleaned);
-    const personal = typeof parsed.personal === 'string' ? parsed.personal.trim() : '';
-    const together = typeof parsed.together === 'string' ? parsed.together.trim() : '';
+    const personal = typeof parsed.personal === 'string' ? noDashes(parsed.personal) : '';
+    const together = typeof parsed.together === 'string' ? noDashes(parsed.together) : '';
     if (personal && together) return { personal, together };
   } catch {
     // try to salvage with a loose match
@@ -128,7 +134,7 @@ horoscopeRouter.get('/', async (_req, res) => {
   const date = todayIst();
 
   try {
-    const cached = getCached(date);
+    const cached = await getCached(date);
     if (cached) {
       res.json({
         date: cached.date,
@@ -162,7 +168,7 @@ horoscopeRouter.get('/', async (_req, res) => {
       source = 'fallback';
     }
 
-    const saved = saveReading(date, personal, together) || {
+    const saved = (await saveReading(date, personal, together)) || {
       date,
       personal,
       together,
