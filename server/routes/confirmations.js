@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db.js';
 import { requireFields } from '../middleware/validate.js';
+import { sendDateConfirmationEmails } from '../mailer.js';
 
 export const confirmationsRouter = Router();
 
@@ -35,7 +36,21 @@ confirmationsRouter.post(
       .prepare(`UPDATE sessions SET completed = 1, ended_at = datetime('now') WHERE id = ?`)
       .run(sessionId);
 
-    res.status(201).json({ ok: true });
+    // Best-effort: a mail problem never fails the confirmation itself. Awaited (not fired and
+    // forgotten) because on a serverless host, work started after the response is sent is not
+    // guaranteed to actually finish.
+    let mail = { sent: false, reason: 'not_configured' };
+    try {
+      mail = await sendDateConfirmationEmails({
+        selectedDate,
+        selectedTime,
+        activities: Array.isArray(activities) ? activities : [],
+      });
+    } catch (err) {
+      console.warn('[confirmations] Could not send the calendar invite', err.message);
+    }
+
+    res.status(201).json({ ok: true, mailSent: mail.sent });
   }
 );
 

@@ -65,6 +65,15 @@ Run `npm run build` then `npm start` (`node server/index.js`). Set these in the 
 
 See `server/.env.example` for the rate-limit overrides and optional Spotify / TMDB / OpenRouter keys.
 
+## Calendar invite email
+
+When she locks in a date, `POST /api/confirmations` will also email a proper calendar invite
+(a real `.ics` attachment with Accept/Decline, not just text) to `HER_EMAIL` and to your own
+`PARTNER_EMAIL`, so it lands in her calendar directly and you see exactly what she picked
+without opening `/admin`. Set the `SMTP_*` / `MAIL_FROM` / `PARTNER_EMAIL` / `HER_EMAIL` /
+`DATE_DURATION_HOURS` variables in `server/.env.example` to turn it on — leave any of them
+unset and this step is silently skipped; confirming the date still works either way.
+
 ## API protection
 
 Public write endpoints are rate limited per IP and capped in body size and field length. Image URLs saved by the API must be `http(s)`. Request bodies over 100 kb are refused.

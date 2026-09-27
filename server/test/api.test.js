@@ -9,6 +9,12 @@ process.env.DB_PATH = join(dir, 'test.db');
 process.env.ADMIN_USERNAME = 'admin';
 process.env.ADMIN_PASSWORD = 'secret';
 delete process.env.OPENROUTER_API_KEY;
+// Confirming a date must work even with no mail set up (most dev machines and CI won't have it).
+delete process.env.SMTP_HOST;
+delete process.env.SMTP_USER;
+delete process.env.SMTP_PASS;
+delete process.env.PARTNER_EMAIL;
+delete process.env.HER_EMAIL;
 
 const { app } = await import('../app.js');
 const { seedIfEmpty } = await import('../seed.js');
@@ -93,6 +99,24 @@ test('oversized JSON bodies return 413, malformed JSON returns 400', async () =>
   assert.equal(big.status, 413);
   const bad = await fetch(`${base}/sessions`, { method: 'POST', headers: json, body: '{oops' });
   assert.equal(bad.status, 400);
+});
+
+test('confirming a date works end to end even with no mail configured', async () => {
+  const session = await (await post('/sessions', {})).json();
+  const res = await post('/confirmations', {
+    sessionId: session.sessionId,
+    selectedDate: '2026-09-28',
+    selectedTime: '7:00 PM',
+    activities: [{ place: 'Blue Tokai', emoji: '☕', moodId: 'coffee', moodLabel: 'Coffee date' }],
+  });
+  assert.equal(res.status, 201);
+  const body = await res.json();
+  assert.equal(body.ok, true);
+  assert.equal(body.mailSent, false);
+
+  const list = await fetch(`${base}/confirmations`, { headers: auth });
+  const rows = await list.json();
+  assert.ok(rows.some((r) => r.session_id === session.sessionId && r.selected_date === '2026-09-28'));
 });
 
 test('ai spark falls back without an API key and tolerates junk input', async () => {
