@@ -4,6 +4,7 @@
   "routes": [
     { "src": "/api/(.*)", "dest": "/api" },
     { "src": "/admin", "dest": "/api" },
+    { "src": "/admin.html", "dest": "/api" },
     { "src": "/admin/(.*)", "dest": "/api" },
     { "handle": "filesystem" }
   ]
