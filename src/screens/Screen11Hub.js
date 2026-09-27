@@ -32,6 +32,11 @@ export function createHubScreen({ manager, analytics }) {
   const iconGrid = document.createElement('div');
   iconGrid.className = 'desk__icons';
 
+  // The one icon that leaves the desktop entirely (currently the proposal). It gets its own
+  // spot on the right, larger than the regular app icons, instead of sitting in the grid.
+  const surpriseSlot = document.createElement('div');
+  surpriseSlot.className = 'desk__surprise';
+
   const note = document.createElement('aside');
   note.className = 'desk__note';
   const greeting = document.createElement('p');
@@ -76,7 +81,7 @@ export function createHubScreen({ manager, analytics }) {
   boot.hidden = true;
   boot.innerHTML = `<div class="boot__inner"><span class="boot__heart">♡</span><p class="boot__line" data-role="boot-line"></p><span class="boot__bar"><i></i></span></div>`;
 
-  desk.append(iconGrid, note, windowLayer, menu);
+  desk.append(iconGrid, surpriseSlot, note, windowLayer, menu);
 
   // Wallpaper: her photo, with the cursor lens revealing other photos of her.
   const lens = createPhotoLens(desk, CONFIG.hubWallpaper);
@@ -154,6 +159,7 @@ export function createHubScreen({ manager, analytics }) {
 
   async function buildIcons() {
     iconGrid.innerHTML = '';
+    surpriseSlot.innerHTML = '';
     startMenu.innerHTML = '';
     const newFlags = await fetchNewFlags();
 
@@ -178,10 +184,10 @@ export function createHubScreen({ manager, analytics }) {
           <span class="desk-icon__tile">${meta.emoji}</span>
           <span class="desk-icon__name">${escapeHtml(meta.name)}</span>
         `;
-        // No select-first dance here — a tap or click goes straight there.
+        // No select-first dance here — a tap or click goes straight there. It lives outside
+        // the grid (its own spot, deliberately bigger), so it is not draggable like the rest.
         icon.addEventListener('click', goThere);
-        enableIconDrag(icon);
-        iconGrid.appendChild(icon);
+        surpriseSlot.appendChild(icon);
 
         const item = document.createElement('button');
         item.type = 'button';

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600">
+  <defs>
+    <linearGradient id="petalOuter" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#fdf0f0"/>
+      <stop offset="60%" stop-color="#f8d3dc"/>
+      <stop offset="100%" stop-color="#e88fa6"/>
+    </linearGradient>
+    <linearGradient id="petalInner" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#fffbf6"/>
+      <stop offset="55%" stop-color="#fce6ea"/>
+      <stop offset="100%" stop-color="#ee9cb0"/>
+    </linearGradient>
+    <linearGradient id="stem" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#82a663"/>
+      <stop offset="100%" stop-color="#5c7d44"/>
+    </linearGradient>
+    <radialGradient id="throat" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#fdeec2" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#fdeec2" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- One tepal, tip pointing toward -y (up), base at origin, gently waisted with a soft
+       outward flare at the very tip. Reused six times below by rotation. -->
+  <path id="tepal" d="
+    M 0 6
+    C -8 -20, -34 -46, -40 -100
+    C -45 -148, -34 -190, -14 -224
+    C -6 -238, 4 -246, 10 -252
+    C 15 -244, 12 -234, 18 -224
+    C 38 -190, 49 -148, 44 -100
+    C 38 -46, 8 -20, 0 6
+    Z"/>
+
+  <!-- stem -->
+  <path d="M448 330 C 445 400, 442 470, 439 566" stroke="url(#stem)" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <!-- leaves, tucked behind the stem, low and slim like a real lily's foliage -->
+  <path d="M444 420 C 400 424, 364 448, 342 488 C 380 480, 416 460, 444 432 Z" fill="#729751"/>
+  <path d="M441 486 C 483 484, 517 502, 536 538 C 500 536, 466 522, 441 496 Z" fill="#688c49"/>
+
+  <!-- outer whorl (3 back tepals, botanically the sepals — smaller, set behind) -->
+  <g fill="url(#petalOuter)" stroke="#dc7f97" stroke-width="1.4" opacity="0.96">
+    <use href="#tepal" transform="translate(448 330) rotate(-90) scale(0.86)"/>
+    <use href="#tepal" transform="translate(448 330) rotate(30) scale(0.86)"/>
+    <use href="#tepal" transform="translate(448 330) rotate(150) scale(0.86)"/>
+  </g>
+
+  <!-- inner whorl (3 front tepals — the true petals, larger, on top, staggered 60° from the outer three) -->
+  <g fill="url(#petalInner)" stroke="#e39cae" stroke-width="1.4">
+    <use href="#tepal" transform="translate(448 330) rotate(-30)"/>
+    <use href="#tepal" transform="translate(448 330) rotate(90)"/>
+    <use href="#tepal" transform="translate(448 330) rotate(210)"/>
+  </g>
+
+  <!-- a soft centre-line on each front tepal -->
+  <g stroke="#e08ea3" stroke-width="1" opacity="0.5" fill="none">
+    <path d="M448 324 C 444 280, 442 230, 445 176" transform="rotate(-30 448 330)"/>
+    <path d="M448 324 C 444 280, 442 230, 445 176" transform="rotate(90 448 330)"/>
+    <path d="M448 324 C 444 280, 442 230, 445 176" transform="rotate(210 448 330)"/>
+  </g>
+
+  <!-- throat glow -->
+  <circle cx="448" cy="318" r="46" fill="url(#throat)"/>
+
+  <!-- freckles near the throat, the lily's signature detail -->
+  <g fill="#c9612f" opacity="0.8">
+    <circle cx="436" cy="300" r="2.2"/>
+    <circle cx="449" cy="292" r="1.9"/>
+    <circle cx="461" cy="299" r="2.1"/>
+    <circle cx="443" cy="309" r="1.6"/>
+    <circle cx="456" cy="311" r="1.7"/>
+    <circle cx="448" cy="322" r="1.5"/>
+  </g>
+
+  <!-- stamens, curving out from the throat -->
+  <g stroke="#93a355" stroke-width="2" fill="none" stroke-linecap="round">
+    <path d="M448 322 C 436 288, 414 258, 390 240"/>
+    <path d="M448 322 C 442 282, 432 246, 416 216"/>
+    <path d="M448 322 C 448 280, 448 240, 448 202"/>
+    <path d="M448 322 C 454 282, 464 246, 480 216"/>
+    <path d="M448 322 C 460 288, 482 258, 506 240"/>
+  </g>
+  <g fill="#a85a22">
+    <ellipse cx="390" cy="236" rx="8" ry="4.5" transform="rotate(-42 390 236)"/>
+    <ellipse cx="416" cy="212" rx="8" ry="4.5" transform="rotate(-18 416 212)"/>
+    <ellipse cx="448" cy="198" rx="8" ry="4.5"/>
+    <ellipse cx="480" cy="212" rx="8" ry="4.5" transform="rotate(18 480 212)"/>
+    <ellipse cx="506" cy="236" rx="8" ry="4.5" transform="rotate(42 506 236)"/>
+  </g>
+</svg>

@@ -435,5 +435,9 @@ export function createScrollStoryScreen({ manager, analytics }) {
       lc.reset();
       if (rafId) cancelAnimationFrame(rafId);
     },
+    destroy() {
+      lc.destroy();
+      atmosphere.destroy();
+    },
   };
 }

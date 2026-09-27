@@ -27,6 +27,7 @@ const FLOWER_TYPES = [
   { id: 'rose', name: 'Rose' },
   { id: 'peony', name: 'Peony' },
   { id: 'tulip', name: 'Tulip' },
+  { id: 'lily', name: 'Lily' },
   { id: 'daisy', name: 'Daisy' },
   { id: 'sprig', name: 'Greens' },
 ];
@@ -257,7 +258,7 @@ export function createBouquetBuilder(options = {}) {
       placeFlower(type);
     } else if (moved && isInDropZone(e.clientX, e.clientY)) {
       ghost.remove();
-      placeFlower(type, e.clientX, e.clientY);
+      placeFlower(type, e.clientX);
     } else if (moved) {
       returnGhostToTray();
     } else {
@@ -297,12 +298,11 @@ export function createBouquetBuilder(options = {}) {
     });
   }
 
-  function placeFlower(type, clientX, clientY) {
+  function placeFlower(type, clientX) {
     const index = placedCount;
     placedCount += 1;
     const pileRect = arrangement.getBoundingClientRect();
     const cx = clientX ?? pileRect.left + pileRect.width / 2;
-    const cy = clientY ?? pileRect.top + pileRect.height * 0.6;
     const slot = pickSlot(index, cx, pileRect);
 
     const baseX = slot.x + (Math.random() - 0.5) * JITTER_X;

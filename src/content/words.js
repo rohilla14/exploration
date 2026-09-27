@@ -83,6 +83,16 @@ export const LETTERS = [
       'Live before you run out of time.',
     ],
   },
+  {
+    id: 'the-first-time',
+    title: 'The first time',
+    paragraphs: [
+      'The first time we met, you hugged me like you had known me my whole life.',
+      'Then you just took my hand and started walking. You were leading, and I was behind you, not saying anything.',
+      'In my head I was just thinking the same word, over and over. Wow. Wow. Wow.',
+      'I still think it sometimes, out of nowhere, remembering that exact moment.',
+    ],
+  },
 ];
 
 /**
@@ -128,3 +138,19 @@ export const CONVERSATIONS = [
     ],
   },
 ];
+
+/**
+ * A single fixed message, always the same, for whenever she needs it. Not part of Letters on
+ * purpose, this one has its own icon on the desktop so it is easy to find on a bad day.
+ * @type {{ title: string, paragraphs: string[] }}
+ */
+export const HARD_DAY_NOTE = {
+  title: 'For the hard days',
+  paragraphs: [
+    'If today is one of the hard ones, this is for you.',
+    'You do not have to be okay right now. Not for me, not for anyone.',
+    'The thing I love in you, how you notice people and make them feel like they matter, does not go away just because you cannot feel it today.',
+    'I see you on the good days and the bad ones. This one does not change anything for me.',
+    'Come back to this whenever you need to. I am not going anywhere.',
+  ],
+};

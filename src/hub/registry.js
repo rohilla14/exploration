@@ -7,6 +7,7 @@ import { createOurPlaylistApp } from './apps/OurPlaylist.js';
 import { createMovieNightsApp } from './apps/MovieNights.js';
 import { createDearDiaryApp } from './apps/DearDiary.js';
 import { createWhyIMadeThisApp } from './apps/WhyIMadeThis.js';
+import { createForHardDaysApp } from './apps/ForHardDays.js';
 import { createPhotoWallApp } from './apps/PhotoWall.js';
 import { createHoroscopeApp } from './apps/Horoscope.js';
 
@@ -28,4 +29,5 @@ export const HUB_REGISTRY = [
   { id: 'letters', factory: createLettersApp },
   { id: 'conversations', factory: createConversationsApp },
   { id: 'why-i-made-this', factory: createWhyIMadeThisApp },
+  { id: 'for-hard-days', factory: createForHardDaysApp },
 ];

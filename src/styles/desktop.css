@@ -318,15 +318,32 @@ button.win__dot:hover {
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
 }
 
-/* The one desk icon that leaves the desktop entirely (the proposal + planner flow) — a warm
-   border and a slow pulse so it invites a tap without shouting. */
+/* The one desk icon that leaves the desktop entirely (the proposal + planner flow) — its own
+   spot on the right, noticeably bigger than the regular app icons, with a warm border and a
+   slow pulse so it invites a tap without shouting. */
+.desk__surprise {
+  position: absolute;
+  top: 50%;
+  right: 1.75rem;
+  translate: 0 -50%;
+  z-index: 4;
+}
+
 .desk-icon--surprise .desk-icon__tile {
+  width: 96px;
+  height: 96px;
+  font-size: 2.75rem;
+  border-radius: 20px;
   border-color: var(--terracotta);
   background: linear-gradient(160deg, var(--butter), var(--win-bg));
+  box-shadow: 4px 4px 0 rgba(122, 59, 69, 0.24);
   animation: surprise-pulse 2.6s ease-in-out infinite;
 }
 
 .desk-icon--surprise .desk-icon__name {
+  max-width: 140px;
+  font-size: 0.78rem;
+  padding: 0.18rem 0.6rem;
   background: var(--butter);
 }
 
@@ -600,6 +617,44 @@ body:has(.screen--hub.screen--active) .easter-egg-heart {
     width: auto;
     transform: none;
     border-radius: 4px 4px 4px 16px;
+  }
+
+  /* Not enough room on a phone for a big floating icon on the right, so it becomes a
+     full-width banner pinned above the taskbar instead — still bigger and more prominent
+     than a regular app icon, just laid out sideways. */
+  .desk__surprise {
+    top: auto;
+    bottom: calc(var(--taskbar-h) + 0.85rem);
+    right: 0.75rem;
+    left: 0.75rem;
+    translate: none;
+  }
+
+  .desk__surprise .desk-icon {
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.55rem 1rem;
+    background: rgba(255, 250, 244, 0.92);
+    border-radius: 16px;
+    border: 2px solid var(--terracotta);
+    box-shadow: 3px 3px 0 rgba(122, 59, 69, 0.22);
+  }
+
+  .desk-icon--surprise .desk-icon__tile {
+    width: 52px;
+    height: 52px;
+    font-size: 1.7rem;
+    box-shadow: none;
+  }
+
+  .desk-icon--surprise .desk-icon__name {
+    max-width: none;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    text-align: left;
   }
 
   .desk__windows .win {

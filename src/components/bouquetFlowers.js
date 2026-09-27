@@ -11,6 +11,7 @@ export const BOUQUET_ASSETS = {
     daisy: '/assets/flowers/daisy.png',
     tulip: '/assets/flowers/tulip.png',
     peony: '/assets/flowers/peony.png',
+    lily: '/assets/flowers/lily.svg',
     sprig: '/assets/flowers/sprig.png',
     // Color variants (same art, CSS filter via tint class)
     'rose-blush': '/assets/flowers/rose.png',

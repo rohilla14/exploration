@@ -81,11 +81,6 @@ export const CONFIG = {
   },
 
   photos: {
-    // Two small photos that settle in beside the greeting when the story opens.
-    polaroidA: '/assets/mirror-terrace.jpg',
-    polaroidB: '/assets/stairs.jpg',
-    // "Some days feel ordinary…" in the scroll story: only the dinner photo of the two of you
-    cinematicCycle: ['/assets/us-dinner.jpg'],
     // setup wizard side panel
     loadingCollage: [
       '/assets/close-up.jpg',
@@ -117,25 +112,25 @@ export const CONFIG = {
   greetingSoftLine:
     "You make ordinary days feel like something worth remembering. Take your time here, there's more to find.",
 
-  // Story beats. Each line gets its own framing, so the photo moves like a camera as she scrolls.
-  // Only photos of the two of you belong here. focus is where the crop sits (x% y%).
+  // Story beats: one photo, held still, as each line takes its turn over it. Same photo, same
+  // crop, on every beat — only the text changes as she scrolls.
   storyBeats: [
-    { line: 'Some days feel ordinary', photo: '/assets/us-dinner.jpg', focus: '50% 30%' },
+    { line: 'Some days feel ordinary', photo: '/assets/us-dinner.jpg', focus: '50% 28%' },
     {
       line: 'until someone makes them feel special.',
       photo: '/assets/us-dinner.jpg',
-      focus: '64% 30%',
+      focus: '50% 28%',
     },
-    { line: 'I notice the small things,', photo: '/assets/us-mirror.jpg', focus: '50% 40%' },
+    { line: 'I notice the small things,', photo: '/assets/us-dinner.jpg', focus: '50% 28%' },
     {
       line: 'a laugh, a look, a room feeling warmer.',
-      photo: '/assets/us-mirror.jpg',
-      focus: '60% 36%',
+      photo: '/assets/us-dinner.jpg',
+      focus: '50% 28%',
     },
     {
       line: 'So I built this, like a present you open one scroll at a time.',
       photo: '/assets/us-dinner.jpg',
-      focus: '50% 26%',
+      focus: '50% 28%',
     },
   ],
   cinematicFinale: 'Welcome to your present. 🎁',
@@ -390,6 +385,17 @@ export const CONFIG = {
 
   closingLine: "Can't wait. 🥳",
 
+  celebrationKeepsakeLabel: 'Something to actually keep',
+  celebrationSaveCta: 'Save this',
+  celebrationPlaySongCta: 'Play our song',
+  celebrationPlayingSongCta: 'Playing now…',
+  celebrationSong: {
+    id: 'lost-frank-ocean',
+    title: 'Lost',
+    artist: 'Frank Ocean',
+    youtube_id: 'J3DWAJGaf7o',
+  },
+
   smileCounterLabel: 'smile?',
   smileTiers: [
     { min: 0, emoji: '😊', label: 'smile?', glow: 0 },
@@ -433,7 +439,7 @@ export const CONFIG = {
   storyContinueLabel: 'Take a look around →',
 
   // Used by the little counter on the desktop. Set this to the day you two started.
-  togetherSince: '2025-12-31',
+  togetherSince: '2025-11-19',
   hubDaysLabel: 'days of us',
 
   hubBootLines: ['Waking up Our World…', 'Loading the good parts…', 'Ready.'],
@@ -531,6 +537,12 @@ export const CONFIG = {
       emoji: '💌',
       name: 'Why I Made This',
       description: 'The real reason this exists',
+    },
+    {
+      id: 'for-hard-days',
+      emoji: '🫂',
+      name: 'For the hard days',
+      description: 'Open this whenever you need it',
     },
   ],
 

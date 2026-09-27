@@ -21,5 +21,3 @@ export const SCREEN_ORDER = Object.freeze([
   SCREENS.CELEBRATION,
   SCREENS.HUB,
 ]);
-
-export const PROGRESS_VISIBLE_FROM = SCREENS.BIG_ASK;
