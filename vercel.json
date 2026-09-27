@@ -1,5 +1,10 @@
 {
   "buildCommand": "vite build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }]
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api" },
+    { "src": "/admin", "dest": "/api" },
+    { "src": "/admin/(.*)", "dest": "/api" },
+    { "handle": "filesystem" }
+  ]
 }
